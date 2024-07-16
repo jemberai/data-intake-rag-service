@@ -1,0 +1,1 @@
+ALTER TABLE event_record ADD COLUMN client_id VARCHAR(255) NULL;

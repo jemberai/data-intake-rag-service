@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:'jdbc:postgresql://pg01-ha.postgresql.svc.cluster.local:5432/jember'}
+    username: "dataintakeservice"
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    url: ${SPRING_FLYWAY_URL:'jdbc:postgresql://pg01-ha.postgresql.svc.cluster.local:5432/jember'}
+    user: "dataintakeowner"
+    driver-class-name: org.postgresql.Driver
+org:
+  jemberai:
+    milvusDatabaseName: "data-intake-dev"
