@@ -15,8 +15,6 @@ COPY --from=builder application/spring-boot-loader/ ./
 COPY --from=builder application/snapshot-dependencies/ ./
 COPY --from=builder application/application/ ./
 
-RUN apt-get update &&  apt-get install dumb-init
-
 USER javauser
 
 # incorporating best practices from snyk.io
