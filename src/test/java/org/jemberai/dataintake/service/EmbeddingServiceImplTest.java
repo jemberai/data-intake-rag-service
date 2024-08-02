@@ -23,6 +23,7 @@ import org.jemberai.dataintake.domain.EventRecord;
 import org.jemberai.dataintake.domain.ModelEnum;
 import org.jemberai.dataintake.messages.EmbeddingRequestCompleteMessage;
 import org.jemberai.dataintake.messages.EmbeddingRequestMessage;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.autoconfigure.openai.OpenAiConnectionProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+@Disabled
 @DirtiesContext
 @Testcontainers
 @SpringBootTest

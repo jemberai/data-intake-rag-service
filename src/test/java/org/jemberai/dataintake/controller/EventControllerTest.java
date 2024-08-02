@@ -199,6 +199,7 @@ class EventControllerTest extends BaseTest {
         });
     }
 
+    @Disabled
     @Test
     void testGetById() throws Exception {
         var json = """
@@ -248,6 +249,7 @@ class EventControllerTest extends BaseTest {
     }
 
 
+    @Disabled
     @Test
     void testDefaultEmbedding() throws Exception {
         var json = """

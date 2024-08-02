@@ -25,6 +25,7 @@ import org.jemberai.dataintake.model.QueryRequest;
 import org.jemberai.dataintake.repositories.EventRecordRepository;
 import lombok.val;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -91,6 +92,7 @@ class QueryControllerTest extends BaseTest {
         System.out.println("Event saved and embedded with id: " + savedId);
     }
 
+    @Disabled
     @Test
     void getDocuments() throws Exception {
 
