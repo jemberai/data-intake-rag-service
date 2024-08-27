@@ -10,13 +10,29 @@ These values should be set to the values of the Spring authorization server.
 * SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI - The URI of the authorization server's JWK set.
 
 ### Spring Configuration
+The Data Intake Service uses Spring Boot and Spring Data JPA. Two database connections are used to store data. The primary 
+database is used to store the data payload, and the keystore database is used to store encryption keys. Two additional 
+database connections are required for Flyway migrations. The flyway database users needs to have DDL permissions. While 
+the application database user should only have DML permissions (for increased database security).
+
 For the deployment environment, the following environment variables should be set:
-* `SPRING_DATASOURCE_URL` - The URL of the database
-* `SPRING_DATASOURCE_USERNAME` - The username for the database
-* `SPRING_DATASOURCE_PASSWORD` - The password for the `dataintakeservice` database user
+* `ORG_JEMBERAI_DATASOURCE_PRIMARY_URL` - The URL of the database
+* `ORG_JEMBERAI_DATASOURCE_PRIMARY_USERNAME` - The username for the database
+* `ORG_JEMBERAI_DATASOURCE_PRIMARY_PASSWORD` - The password for the `dataintakeservice` database user
+* `ORG_JEMBERAI_DATASOURCE_PRIMARY_DRIVER-CLASS-NAME` = `org.postgresql.Driver`
+* `ORG_JEMBERAI_JPA_PRIMARY_HIBERNATE_DDL-AUTO` = `validate`
 * `SPRING_FLYWAY_URL` - The URL of the database
 * `SPRING_FLYWAY_USER` - The username for the database
 * `SPRING_FLYWAY_PASSWORD` - The password for the `dataintakeowner` database user
+* `ORG_JEMBERAI_DATASOURCE_KEYSTORE_URL` - The URL of the keystore database
+* `ORG_JEMBERAI_DATASOURCE_KEYSTORE_USERNAME` - The username for the database
+* `ORG_JEMBERAI_DATASOURCE_KEYSTORE_PASSWORD` - The password for the `dataintakeservice` database user
+* `ORG_JEMBERAI_DATASOURCE_KEYSTORE_DRIVER-CLASS-NAME` = `org.postgresql.Driver`
+* `ORG_JEMBERAI_JPA_KEYSTORE_HIBERNATE_DDL-AUTO` = `validate`
+* `ORG_JEMBERAI_DATASOURCE_KEYSTORE-FLYWAY_URL` - The URL of the keystore database
+* `ORG_JEMBERAI_DATASOURCE_KEYSTORE-FLYWAY_USERNAME` - The username for the database
+* `ORG_JEMBERAI_DATASOURCE_KEYSTORE-FLYWAY_PASSWORD` - The password for the `dataintakeservice` database user
+* `ORG_JEMBERAI_DATASOURCE_KEYSTORE-FLYWAY_DRIVER-CLASS-NAME` = `org.postgresql.Driver`
 * `OPENAI_API_KEY` - The API key for the OpenAI API
 * `SPRING_AI_VECTORSTORE_MILVUS_CLIENT_HOST` - The host of the Milvus server
 * `SPRING_AI_VECTORSTORE_MILVUS_CLIENT_PORT` - The port of the Milvus server

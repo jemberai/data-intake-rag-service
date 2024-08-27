@@ -16,25 +16,22 @@
  *
  */
 
-create table event_record
-(
-    id             char(36)     not null,
-    client_id      varchar(255),
-    spec_version   varchar(4)   not null,
-    event_type     varchar(255),
-    source         varchar(255),
-    subject        varchar(255),
-    event_id       varchar(255),
-    time           TIMESTAMP,
-    data_content_type varchar(255),
-    sha_256 VARCHAR(255) NULL,
-    embedding_status VARCHAR(255) NULL,
-    data_key_id    char(36),
-    data_provider  varchar(255),
-    data_hmac      bytea,
-    data_initialization_vector bytea,
-    data_encrypted_value bytea,
-    date_created   TIMESTAMP,
-    date_updated   TIMESTAMP,
-    primary key (id)
+create table encryption_keys (
+     id char(36) not null,
+     version integer,
+     client_id varchar(255),
+     key_id varchar(36),
+     aes_key_id uuid,
+     aes_provider varchar(255),
+     aes_hmac bytea,
+     aes_initialization_vector bytea,
+     aes_encrypted_value bytea,
+     hmac_key_id uuid,
+     hmac_provider varchar(255),
+     hmac_hmac bytea,
+     hmac_initialization_vector bytea,
+     hmac_encrypted_value bytea,
+     date_created   TIMESTAMP,
+     date_updated   TIMESTAMP,
+     primary key (id)
 );

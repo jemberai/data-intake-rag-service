@@ -22,10 +22,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.1</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <groupId>org.jemberai</groupId>
+        <artifactId>jember-spring-bom</artifactId>
+        <version>0.16.0</version>
     </parent>
 
     <groupId>org.jemberia</groupId>
@@ -69,10 +68,7 @@
 
     <properties>
         <java.version>21</java.version>
-        <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
-        <logbook.version>3.9.0</logbook.version>
-        <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
-        <spring-ai.version>1.0.0-M1</spring-ai.version>
+        <jember-cryptography.version>0.7.0</jember-cryptography.version>
     </properties>
 
     <dependencyManagement>
@@ -88,6 +84,11 @@
     </dependencyManagement>
 
     <dependencies>
+        <dependency>
+            <groupId>org.jemberai</groupId>
+            <artifactId>jember-cryptography-jpa</artifactId>
+            <version>${jember-cryptography.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -109,8 +110,18 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-milvus-store-spring-boot-starter</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>redis.clients</groupId>
+                    <artifactId>jedis</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.ai</groupId>
@@ -123,17 +134,14 @@
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>logbook-spring-boot-starter</artifactId>
-            <version>${logbook.version}</version>
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>logbook-logstash</artifactId>
-            <version>${logbook.version}</version>
         </dependency>
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
-            <version>${logstash-logback-encoder.version}</version>
         </dependency>
         <dependency>
             <groupId>io.micrometer</groupId>
@@ -142,12 +150,11 @@
         <dependency>
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
-            <version>5.9</version>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
-            <scope>runtime</scope>
+<!--            <scope>runtime</scope>-->
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
@@ -162,27 +169,22 @@
         <dependency>
             <groupId>io.cloudevents</groupId>
             <artifactId>cloudevents-spring</artifactId>
-            <version>3.0.0</version>
         </dependency>
         <dependency>
             <groupId>io.cloudevents</groupId>
             <artifactId>cloudevents-http-basic</artifactId>
-            <version>3.0.0</version>
         </dependency>
         <dependency>
             <groupId>io.cloudevents</groupId>
             <artifactId>cloudevents-json-jackson</artifactId>
-            <version>3.0.0</version>
         </dependency>
         <dependency>
             <groupId>io.cloudevents</groupId>
             <artifactId>cloudevents-http-restful-ws</artifactId>
-            <version>3.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
-            <version>${org.mapstruct.version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -211,14 +213,16 @@
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
             <artifactId>milvus</artifactId>
-            <version>1.19.8</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
-            <version>4.2.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -239,7 +243,6 @@
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
                 <configuration>
                     <annotationProcessorPaths>
                         <path>
@@ -266,13 +269,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>3.3.1</version>
             </plugin>
 
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.12</version>
                 <executions>
                     <execution>
                         <goals>
@@ -295,7 +296,45 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>artifact-management</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireUpperBoundDeps>
+                                    <excludes>
+                                        <exclude>io.micrometer:micrometer-tracing-bridge-otel</exclude>
+                                        <exclude>io.opentelemetry:opentelemetry-api</exclude>
+                                        <exclude>io.opentelemetry:opentelemetry-sdk-common</exclude>
+                                        <exclude>io.opentelemetry:opentelemetry-sdk-trace</exclude>
+                                        <exclude>io.opentelemetry:opentelemetry-sdk</exclude>
+                                        <exclude>io.opentelemetry:opentelemetry-extension-trace-propagators</exclude>
+                                        <exclude>com.github.victools:jsonschema-module-jackson</exclude>
+                                        <exclude>org.antlr:antlr4-runtime</exclude>
+                                        <exclude>com.github.victools:jsonschema-generator</exclude>
+                                        <exclude>org.springframework.ai:spring-ai-tika-document-reader</exclude>
+                                        <exclude>org.springframework.ai:spring-ai-milvus-store</exclude>
+                                        <exclude>org.testcontainers:postgresql</exclude>
+                                        <exclude>com.opencsv:opencsv</exclude>
+                                        <exclude>commons-codec:commons-codec</exclude>
+                                        <exclude>commons-logging:commons-logging</exclude>
+                                        <exclude>org.jetbrains.kotlin:kotlin-stdlib</exclude>
+                                        <exclude>org.jetbrains:annotations</exclude>
+                                        <exclude>org.apache.commons:commons-collections4</exclude>
+                                    </excludes>
+                                </requireUpperBoundDeps>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
 
+            </plugin>
         </plugins>
         <resources>
             <resource>
@@ -304,17 +343,6 @@
             </resource>
         </resources>
     </build>
-
-    <repositories>
-        <repository>
-            <id>spring-milestones</id>
-            <name>Spring Milestones</name>
-            <url>https://repo.spring.io/milestone</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
 
     <developers>
         <developer>

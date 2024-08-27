@@ -10,8 +10,8 @@ spring:
   flyway:
    driver-class-name: org.h2.Driver
    locations: classpath:db/migration,classpath:db/vendor/{vendor}
-  profiles:
-   active: json-logs
+#  profiles:
+#   active: json-logs
   security:
    oauth2:
      resourceserver:
@@ -46,6 +46,7 @@ logging:
   level:
     org.jemberai.dataintake: trace
     org.zalando.logbook: trace
+    # org.springframework.orm: trace
     root: ${LOG_LEVEL:info}
   include-application-name: true
 server:
@@ -53,6 +54,35 @@ server:
 org:
   jemberai:
     milvusDatabaseName: "data_intake_local"
+    cryptography:
+      jemberKeyId: "9a7630cd-8083-429c-82c0-a76d12d69f13"
+      jemberAesKey: "NW67Ztk36sn8gzo8atUYspcrdSuv1Tn94gZhEQbb094="
+      jemberHmacKey: "bP8hfE2sl7kJwHbi3mnmXUeLP6AGnDErQv3+mcADtU0="
+    datasource:
+      primary:
+        url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+        driver-class-name: org.h2.Driver
+        username: sa
+        password: admin
+        name: primary
+      keystore:
+        url: jdbc:h2:mem:keystore;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+        driver-class-name: org.h2.Driver
+        username: sa
+        password: admin
+        name: keystore
+      keystore-flyway:
+        url: jdbc:h2:mem:keystore;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+        driver-class-name: org.h2.Driver
+        username: sa
+        password: admin
+    jpa:
+      primary:
+          hibernate:
+            ddl-auto: none
+      keystore:
+        hibernate:
+          ddl-auto: none
 logbook:
   predicate:
     exclude:
