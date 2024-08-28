@@ -93,7 +93,7 @@ jobs:
             ${{ env.REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
-            type,raw,value=${{github.event.inputs.releaseversion}}
+            type,raw,value=${{steps.bump.outputs.new_tag}}
             type=ref,event=branch
             type=ref,event=tag
             type=ref,event=pr
@@ -113,10 +113,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           body: |
-            Grab the new version from [Quay.io](https://quay.io/repository/jember.ai/data-intake-rag-service/tag/${{ github.event.inputs.releaseversion }})
+            Grab the new version from [Quay.io](https://quay.io/repository/jember.ai/data-intake-rag-service/tag/${{ steps.bump.outputs.new_tag }})
             
             ```
-              docker pull quay.io/jember.ai/data-intake-rag-service:${{ github.event.inputs.releaseversion }} 
+              docker pull quay.io/jember.ai/data-intake-rag-service:${{ steps.bump.outputs.new_tag }} 
             ``` 
             ### Things that changed in this release
             ${{ steps.changelog.outputs.changelog }}
