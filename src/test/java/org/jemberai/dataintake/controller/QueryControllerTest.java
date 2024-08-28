@@ -19,6 +19,7 @@
 package org.jemberai.dataintake.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.jemberai.dataintake.BaseTest;
 import org.jemberai.dataintake.domain.EmbeddingStatusEnum;
 import org.jemberai.dataintake.model.QueryRequest;
@@ -47,6 +48,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Slf4j
 @DirtiesContext
 @Testcontainers
 @SpringBootTest
@@ -89,7 +91,7 @@ class QueryControllerTest extends BaseTest {
 
         await().atMost(300, TimeUnit.SECONDS).until(() -> eventRecordRepository.findById(savedId).get().getEmbeddingStatus().equals(EmbeddingStatusEnum.COMPLETED));
 
-        System.out.println("Event saved and embedded with id: " + savedId);
+        log.debug("Event saved and embedded with id: " + savedId);
     }
 
     @Disabled
@@ -106,9 +108,5 @@ class QueryControllerTest extends BaseTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(4)))
                 .andReturn();
-
-        val body = mvcResponse.getResponse().getContentAsString();
-
-        System.out.println(body);
     }
 }

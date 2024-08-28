@@ -16,25 +16,5 @@
  *
  */
 
-create table event_record
-(
-    id             char(36)     not null,
-    client_id      varchar(255),
-    spec_version   varchar(4)   not null,
-    event_type     varchar(255),
-    source         varchar(255),
-    subject        varchar(255),
-    event_id       varchar(255),
-    time           TIMESTAMP,
-    data_content_type varchar(255),
-    sha_256 VARCHAR(255) NULL,
-    embedding_status VARCHAR(255) NULL,
-    data_key_id    char(36),
-    data_provider  varchar(255),
-    data_hmac      bytea,
-    data_initialization_vector bytea,
-    data_encrypted_value bytea,
-    date_created   TIMESTAMP,
-    date_updated   TIMESTAMP,
-    primary key (id)
-);
+drop table if exists encryption_keys;
+drop table if exists default_encryption_key;

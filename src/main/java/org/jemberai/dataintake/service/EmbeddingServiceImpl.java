@@ -34,7 +34,9 @@ import org.apache.tika.mime.MimeTypes;
 import org.springframework.ai.autoconfigure.openai.OpenAiConnectionProperties;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.MetadataMode;
+import org.springframework.ai.embedding.BatchingStrategy;
 import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.ai.embedding.TokenCountBatchingStrategy;
 import org.springframework.ai.openai.OpenAiEmbeddingModel;
 import org.springframework.ai.openai.OpenAiEmbeddingOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
@@ -141,10 +143,11 @@ public class EmbeddingServiceImpl implements EmbeddingService {
     public VectorStore vectorStore(MilvusServiceClient milvusClient, EmbeddingModel embeddingModel, String collectionName) {
         MilvusVectorStore.MilvusVectorStoreConfig config = MilvusVectorStore.MilvusVectorStoreConfig.builder()
                 .withCollectionName(collectionName)
-
                 .build();
 
-        MilvusVectorStore vectorStore = new MilvusVectorStore(milvusClient, embeddingModel, config , true);
+        BatchingStrategy batchingStrategy = new TokenCountBatchingStrategy();
+
+        MilvusVectorStore vectorStore = new MilvusVectorStore(milvusClient, embeddingModel, config , true, batchingStrategy);
 
         // will create collection if missing
         try {

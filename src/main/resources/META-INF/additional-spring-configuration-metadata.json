@@ -1,0 +1,18 @@
+{
+  "properties": [
+    {
+      "name": "org.jemberai.cryptography.jemberKeyId",
+      "type": "java.lang.String",
+      "description": "Description for org.jemberai.cryptography.jemberKeyId."
+    },
+    {
+      "name": "org.jemberai.cryptography.jemberAesKey",
+      "type": "java.lang.String",
+      "description": "Description for org.jemberai.cryptography.jemberAesKey."
+    },
+    {
+      "name": "org.jemberai.cryptography.jemberHmacKey",
+      "type": "java.lang.String",
+      "description": "Description for org.jemberai.cryptography.jemberHmacKey."
+    }
+  ] }

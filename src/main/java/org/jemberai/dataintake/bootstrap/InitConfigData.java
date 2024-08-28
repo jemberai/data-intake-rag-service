@@ -53,10 +53,6 @@ public class InitConfigData implements CommandLineRunner {
     private void initClientConfig() {
         saveOrUpdateClientConfig("jember-client", "jember-client");
 
-        log.debug("showing client config");
-        embeddingConfigurationRepository.findAll().forEach(embeddingConfiguration -> {
-            System.out.println(embeddingConfiguration.toString());
-        });
     }
 
     private void saveOrUpdateClientConfig(String clientId, String milvusCollection){

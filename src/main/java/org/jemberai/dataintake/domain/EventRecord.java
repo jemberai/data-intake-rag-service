@@ -20,10 +20,7 @@ package org.jemberai.dataintake.domain;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -37,14 +34,15 @@ import java.util.UUID;
 /**
  * Created by jt, Spring Framework Guru.
  */
+@ToString(exclude = "extensions")
 @Getter
 @Setter
 @RequiredArgsConstructor
-@Builder
 @Entity
+@EntityListeners(EventRecordListener.class)
 public class EventRecord {
 
-    //used by Lombok Builder
+    @Builder
     public EventRecord(UUID id, String clientId, String specVersion, String eventType, String source, String subject, String eventId,
                        OffsetDateTime time, String dataContentType, byte[] data, String sha256,
                        EmbeddingStatusEnum embeddingStatus, Set<EventExtensionRecord> extensions,
@@ -60,7 +58,7 @@ public class EventRecord {
         this.dataContentType = dataContentType;
         this.data = data;
         this.sha256 = sha256;
-        this.embeddingStatus = embeddingStatus;
+        if (embeddingStatus != null) this.embeddingStatus = embeddingStatus;
         this.extensions = extensions;
         this.dateCreated = dateCreated;
         this.dateUpdated = dateUpdated;
@@ -94,12 +92,28 @@ public class EventRecord {
 
     private String dataContentType;
 
+    @Transient
     private byte[] data;
+
+    @Column(name = "data_provider")
+    private String provider;
+
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(name = "data_key_id", columnDefinition = "char(36)")
+    private UUID keyId;
+
+    @Column(name = "data_hmac")
+    private byte[] hmac;
+
+    @Column(name = "data_encrypted_value")
+    private byte[] encryptedValue;
+
+    @Column(name = "data_initialization_vector")
+    private byte[] initializationVector;
 
     @Column(name = "sha_256")
     private String sha256;
 
-    @Builder.Default
     @Enumerated(EnumType.STRING)
     private EmbeddingStatusEnum embeddingStatus = EmbeddingStatusEnum.NEW;
 
