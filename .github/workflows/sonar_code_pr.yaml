@@ -40,4 +40,4 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B clean verify --no-transfer-progress -P coverage org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=jemberai_data-intake-rag-service
+        run: ./mvnw -B clean verify --no-transfer-progress -P coverage org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=jemberai_data-intake-rag-service
