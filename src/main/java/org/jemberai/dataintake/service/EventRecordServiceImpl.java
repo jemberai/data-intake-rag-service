@@ -76,7 +76,7 @@ public class EventRecordServiceImpl implements EventRecordService {
 
         var savedEventRecord = eventRecordRepository.save(eventRecord);
 
-        log.debug("Saved EventRecord: {}", savedEventRecord);
+        log.debug("Saved EventRecord Id: {}", savedEventRecord.getId());
         log.debug("Publishing NewEventMessage");
         applicationEventPublisher.publishEvent(NewEventMessage.builder().newEventRecord(savedEventRecord).build());
 

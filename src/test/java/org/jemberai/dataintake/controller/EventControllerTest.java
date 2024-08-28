@@ -19,6 +19,7 @@
 package org.jemberai.dataintake.controller;
 
 import io.milvus.client.MilvusClient;
+import lombok.extern.slf4j.Slf4j;
 import org.jemberai.dataintake.BaseTest;
 import org.jemberai.dataintake.domain.EmbeddingStatusEnum;
 import org.jemberai.dataintake.messages.EmbeddingRequestCompleteMessage;
@@ -53,6 +54,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Slf4j
 @ActiveProfiles({"test" , "json-logs"})
 @DirtiesContext
 @RecordApplicationEvents
@@ -103,7 +105,7 @@ class EventControllerTest extends BaseTest {
         val response = mvcResponse.andReturn().getResponse();
 
         response.getHeaderNames().forEach(hName -> {
-            System.out.println(hName + " : " + response.getHeader(hName));
+            log.debug(hName + " : " + response.getHeader(hName));
         });
 
         byte[] decodedBytes = Base64.getDecoder().decode(response.getContentAsByteArray());
@@ -133,7 +135,7 @@ class EventControllerTest extends BaseTest {
         val response = mvcResponse.andReturn().getResponse();
 
         response.getHeaderNames().forEach(hName -> {
-            System.out.println(hName + " : " + response.getHeader(hName));
+            log.debug(hName + " : " + response.getHeader(hName));
         });
 
         byte[] decodedBytes = Base64.getDecoder().decode(response.getContentAsByteArray());
@@ -161,7 +163,7 @@ class EventControllerTest extends BaseTest {
         val response = mvcResponse.andReturn().getResponse();
 
         response.getHeaderNames().forEach(hName -> {
-            System.out.println(hName + " : " + response.getHeader(hName));
+            log.debug(hName + " : " + response.getHeader(hName));
         });
 
         Path toFile = Paths.get("target", "data.csv");
@@ -192,10 +194,10 @@ class EventControllerTest extends BaseTest {
 
         var response = mvcResult.andReturn().getResponse();
 
-        System.out.println( response.getContentAsString());
+        log.debug(response.getContentAsString());
 
         response.getHeaderNames().forEach(hName -> {
-            System.out.println(hName + " : " + response.getHeader(hName));
+            log.debug(hName + " : " + response.getHeader(hName));
         });
     }
 
@@ -224,10 +226,8 @@ class EventControllerTest extends BaseTest {
 
         var response = mvcResult.andReturn().getResponse();
 
-        System.out.println( response.getContentAsString());
-
         response.getHeaderNames().forEach(hName -> {
-            System.out.println(hName + " : " + response.getHeader(hName));
+            log.debug(hName + " : " + response.getHeader(hName));
         });
 
         mockMvc.perform(get("/v1/event/{id}", response.getHeader("ce-jemberaieventid"))
@@ -340,6 +340,6 @@ class EventControllerTest extends BaseTest {
                         .content(json))
                 .andExpect(status().isOk());
 
-        System.out.println( foo.andReturn().getResponse().getContentAsString());
+        log.debug(foo.andReturn().getResponse().getContentAsString());
     }
 }

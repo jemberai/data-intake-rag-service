@@ -61,6 +61,5 @@ public class EmbeddingConfigRepoTest {
 
         assert cfgOptional.isPresent();
 
-        System.out.println(cfgOptional);
     }
 }

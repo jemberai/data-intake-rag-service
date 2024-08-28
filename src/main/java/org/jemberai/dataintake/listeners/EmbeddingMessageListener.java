@@ -44,7 +44,7 @@ public class EmbeddingMessageListener {
     @EventListener
     public void listen(EmbeddingRequestMessage msg) {
 
-        log.debug("Received embedding request message: " + msg);
+        log.debug("Received embedding request message: Event RecordId " + msg.getEventRecord().getId());
         //using switch since this list will grow
         switch (msg.getModel()) {
             case OPENAI:
@@ -59,7 +59,7 @@ public class EmbeddingMessageListener {
     @EventListener
     public void listen(EmbeddingRequestCompleteMessage msg) {
 
-        log.debug("Received embedding request complete message: " + msg);
+        log.debug("Received embedding request complete message. Event Record Id " + msg.getEventRecord().getId());
 
         eventRecordRepository.findById(msg.getEventRecord().getId()).ifPresentOrElse(eventRecord -> {
 
