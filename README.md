@@ -1,3 +1,5 @@
+![GitHub Release](https://img.shields.io/github/v/release/jemberai/data-intake-rag-service?sort=date&display_name=release)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jemberai_data-intake-rag-service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=jemberai_data-intake-rag-service)
 # Data Intake RAG Service
 
 This repository contains the Data Intake Service. This service allows for the intake of data from 
