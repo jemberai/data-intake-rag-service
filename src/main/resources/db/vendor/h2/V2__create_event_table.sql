@@ -19,6 +19,7 @@
 create table event_record
 (
     id             char(36)     not null,
+    version integer,
     client_id      varchar(255),
     spec_version   varchar(4)   not null,
     event_type     varchar(255),
@@ -39,22 +40,21 @@ create table event_record
     primary key (id)
 );
 
-create table encryption_keys (
-     id char(36) not null,
-     version smallint,
-     client_id varchar(255),
-     key_id varchar(36),
-     aes_key_id varchar(36),
-     aes_provider varchar(255),
-     aes_hmac binary,
-     aes_initialization_vector binary,
-     aes_encrypted_value binary,
-     hmac_key_id varchar(36),
-     hmac_provider varchar(255),
-     hmac_hmac binary,
-     hmac_initialization_vector binary,
-     hmac_encrypted_value binary,
-     date_created   TIMESTAMP,
-     date_updated   TIMESTAMP,
-     primary key (id)
+
+create table event_record_chunk
+(
+    id             char(36)     not null,
+    event_record_id char(36) not null,
+    version integer,
+    data binary large object,
+    data_key_id    char(36),
+    data_provider  varchar(255),
+    data_hmac      varbinary(255),
+    data_initialization_vector varbinary(255),
+    data_encrypted_value binary large object,
+    sha_256 VARCHAR(255) NULL,
+    date_created   TIMESTAMP,
+    date_updated   TIMESTAMP,
+    primary key (id),
+    constraint event_record_event_record_fk foreign key  (event_record_id) references event_record (id)
 );

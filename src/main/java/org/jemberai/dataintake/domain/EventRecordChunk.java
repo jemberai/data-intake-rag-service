@@ -31,13 +31,14 @@ import java.util.UUID;
 /**
  * Created by jt, Spring Framework Guru.
  */
-@Getter
 @Setter
-@RequiredArgsConstructor
-@AllArgsConstructor
-@Builder
+@Getter
 @Entity
-public class EventExtensionRecord {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EntityListeners(EventRecordChunkListener.class)
+public class EventRecordChunk {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -48,13 +49,36 @@ public class EventExtensionRecord {
     @Version
     private Integer version;
 
-    @ManyToOne
-    @JoinColumn(name = "event_record_id")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "event_record_id", columnDefinition = "char(36)")
+    @JdbcTypeCode(SqlTypes.CHAR)
     private EventRecord eventRecord;
 
-    private String fieldName;
+    /**
+     * The data for this chunk. Unable to make this transient as it is used in the listener. Turns out that
+     * transient fields are sent to listeners when it is a top level entity, but not in collections. The
+     * Listener will mask this field and encrypt/decrypt it as needed.
+     */
+    private byte[] data;
 
-    private String fieldValue;
+    @Column(name = "data_provider")
+    private String provider;
+
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(name = "data_key_id", columnDefinition = "char(36)")
+    private UUID keyId;
+
+    @Column(name = "data_hmac")
+    private byte[] hmac;
+
+    @Column(name = "data_encrypted_value")
+    private byte[] encryptedValue;
+
+    @Column(name = "data_initialization_vector")
+    private byte[] initializationVector;
+
+    @Column(name = "sha_256")
+    private String sha256;
 
     @CreationTimestamp
     private LocalDateTime dateCreated;

@@ -40,9 +40,6 @@ management:
     sampling:
       probability: 0.5
 logging:
-  pattern:
-    level: |
-      [${spring.application.name:},%X{traceId:-},%X{spanId:-}]
   level:
     org.jemberai.dataintake: trace
     org.zalando.logbook: trace

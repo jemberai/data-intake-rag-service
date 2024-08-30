@@ -24,7 +24,9 @@ import org.jemberai.cryptography.keymanagement.AesKeyDTO;
 import org.jemberai.cryptography.keymanagement.JpaKeyService;
 import org.jemberai.cryptography.keymanagement.KeyUtils;
 import org.jemberai.cryptography.repositories.DefaultEncryptionKeyRepository;
+import org.jemberai.dataintake.domain.EventExtensionRecord;
 import org.jemberai.dataintake.domain.EventRecord;
+import org.jemberai.dataintake.domain.EventRecordChunk;
 import org.jemberai.dataintake.repositories.EventRecordRepository;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -45,7 +47,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import javax.sql.DataSource;
-import java.util.Map;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -134,7 +136,7 @@ public class PostgresIT {
     void testSaveRecord() {
         //given
         log.info("Saving Event Record");
-        val eventRecord = buildEventRecord;
+        val eventRecord = getBuildEventRecord();
         val savedEventRecord = eventRecordRepository.saveAndFlush(eventRecord);
 
         log.info("Saved Event Record: {}", savedEventRecord);
@@ -142,7 +144,17 @@ public class PostgresIT {
         val count = eventRecordRepository.count();
         assertThat(count).isGreaterThan(0);
         assertThat(savedEventRecord.getData()).isEqualTo(eventRecord.getData());
-
+        assertThat(savedEventRecord.getDataContentType()).isEqualTo(eventRecord.getDataContentType());
+        assertThat(savedEventRecord.getSpecVersion()).isEqualTo(eventRecord.getSpecVersion());
+        assertThat(savedEventRecord.getSource()).isEqualTo(eventRecord.getSource());
+        assertThat(savedEventRecord.getExtensions()).hasSize(1);
+        assertThat(savedEventRecord.getChunks()).hasSize(1);
+        assertThat(savedEventRecord.getExtensions().iterator().next().getFieldName()).isEqualTo("test");
+        assertThat(savedEventRecord.getExtensions().iterator().next().getId()).isNotNull();
+        assertThat(savedEventRecord.getChunks().iterator().next().getData()).isEqualTo(eventRecord.getChunks().iterator().next().getData());
+        assertThat(savedEventRecord.getChunks().iterator().next().getEncryptedValue()).isNotNull();
+        assertThat(savedEventRecord.getChunks().iterator().next().getEventRecord()).isNotNull();
+        assertThat(savedEventRecord.getChunks().iterator().next().getId()).isNotNull();
         //verify data is encrypted in database, query db directly
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSourcePrimary);
 
@@ -156,12 +168,94 @@ public class PostgresIT {
         assertThat(dataAsString).isNotEqualTo(eventRecord.getData().toString());
     }
 
-    EventRecord buildEventRecord = EventRecord.builder()
-            .eventId("123")
-            .clientId(TEST_CLIENT_ID)
-            .data("This is some text".getBytes())
-            .specVersion("1.0")
-            .dataContentType(MimeType.valueOf("text/plain").toString())
-            .source("test")
-            .build();
+    @Transactional
+    @Test
+    void testAddOfChildRecords() {
+        //given
+        log.info("Saving Event Record");
+        val eventRecord = getBuildEventRecord();
+        val savedEventRecord = eventRecordRepository.saveAndFlush(eventRecord);
+
+        val fetchedEventRecord = eventRecordRepository.findById(savedEventRecord.getId()).get();
+
+        fetchedEventRecord.addExtension(EventExtensionRecord.builder()
+                .fieldName("test2")
+                .fieldValue("value2")
+                .build());
+
+        fetchedEventRecord.addChunk(EventRecordChunk.builder()
+                .data("This is some more text".getBytes())
+                        .provider("foo")
+                .build());
+
+        log.debug("Saving updated Event Record with new chunk");
+        val updatedEventRecord = eventRecordRepository.saveAndFlush(fetchedEventRecord);
+
+        assertThat(updatedEventRecord.getExtensions()).hasSize(2);
+        assertThat(updatedEventRecord.getChunks()).hasSize(2);
+
+        eventRecord.getChunks().forEach(chunk -> {
+            assertThat(chunk.getEncryptedValue()).isNotNull();
+            assertThat(chunk.getEventRecord()).isNotNull();
+            assertThat(chunk.getId()).isNotNull();
+
+            log.debug(new String(chunk.getData()));
+        });
+
+        val checkUpdatedRecord = eventRecordRepository.findById(updatedEventRecord.getId()).get();
+
+        assertThat(checkUpdatedRecord.getExtensions()).hasSize(2);
+        assertThat(checkUpdatedRecord.getChunks()).hasSize(2);
+
+        checkUpdatedRecord.getChunks().forEach(chunk -> {
+            assertThat(chunk.getEncryptedValue()).isNotNull();
+            assertThat(chunk.getEventRecord()).isNotNull();
+            assertThat(chunk.getId()).isNotNull();
+
+            log.debug(new String(chunk.getData()));
+        });
+
+        //verify data is encrypted in database, query db directly
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSourcePrimary);
+
+        val result = jdbcTemplate.queryForRowSet("SELECT * FROM event_record_chunk");
+
+        assertThat(result).isNotNull();
+
+        //verify data is encrypted in the database
+        while (result.next()) {
+            Object obj = result.getObject(4);
+            byte[] data = (byte[]) obj;
+            assertThat(data).isNotNull();
+            String dataAsString = new String(data);
+            assertThat(dataAsString).isEqualTo("encrypted");
+            log.debug(dataAsString);
+        }
+    }
+
+    EventRecord getBuildEventRecord() {
+        List<EventExtensionRecord> extensionRecords = new ArrayList<>();
+        extensionRecords.add(EventExtensionRecord.builder()
+                .fieldName("test")
+                .fieldValue("value")
+                .build());
+
+        List<EventRecordChunk> chunks = new ArrayList<>();
+        chunks.add(EventRecordChunk.builder()
+                .data("This is some text".getBytes())
+                .build());
+
+        return EventRecord.builder()
+                .eventId("123")
+                .clientId(TEST_CLIENT_ID)
+                .data("This is some text".getBytes())
+                .specVersion("1.0")
+                .dataContentType(MimeType.valueOf("text/plain").toString())
+                .source("test")
+                .extensions(extensionRecords)
+            .chunks(chunks)
+                .build();
+    }
+
+
 }

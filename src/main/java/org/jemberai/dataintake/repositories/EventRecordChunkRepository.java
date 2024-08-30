@@ -16,7 +16,15 @@
  *
  */
 
-drop table if exists event_record;
-drop table if exists event_extension_record;
-drop table if exists event_record_chunk;
-drop table if exists embedding_configuration;
+package org.jemberai.dataintake.repositories;
+
+import org.jemberai.dataintake.domain.EventRecordChunk;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.UUID;
+
+/**
+ * Created by jt, Spring Framework Guru.
+ */
+public interface EventRecordChunkRepository extends JpaRepository<EventRecordChunk, UUID> {
+}

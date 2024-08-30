@@ -19,6 +19,7 @@
 create table event_extension_record
 (
     id              char(36)     not null,
+    version integer,
     event_record_id char(36)     not null,
     field_name     varchar(255),
     field_value    varchar(255),
@@ -32,6 +33,7 @@ create table event_extension_record
 create table embedding_configuration
 (
     id           char(36) not null,
+    version integer,
     client_id    varchar(255) not null,
     event_type   varchar(255) not null,
     model_name   varchar(255) not null,

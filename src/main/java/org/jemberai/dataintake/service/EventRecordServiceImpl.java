@@ -20,19 +20,19 @@ package org.jemberai.dataintake.service;
 
 import io.cloudevents.CloudEvent;
 import io.cloudevents.core.v1.CloudEventBuilder;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jemberai.dataintake.domain.EventExtensionRecord;
 import org.jemberai.dataintake.domain.EventRecord;
 import org.jemberai.dataintake.messages.NewEventMessage;
 import org.jemberai.dataintake.repositories.EventRecordRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -90,7 +90,7 @@ public class EventRecordServiceImpl implements EventRecordService {
                     .fieldValue(savedEventRecord.getId().toString())
                     .build());
         } else {
-            savedEventRecord.setExtensions(Set.of(EventExtensionRecord.builder()
+            savedEventRecord.setExtensions(Collections.singletonList(EventExtensionRecord.builder()
                     .fieldName(JEMBERAIEVENTID)
                     .fieldValue(savedEventRecord.getId().toString())
                     .build()));
@@ -127,7 +127,7 @@ public class EventRecordServiceImpl implements EventRecordService {
                             .fieldName(name)
                             .fieldValue(event.getExtension(name) == null ? "" : event.getExtension(name).toString()) //todo prob need to make this more robust
                             .build())
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toList());
 
             builder.extensions(extensionRecords);
         }
