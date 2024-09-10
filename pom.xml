@@ -69,20 +69,19 @@
     <properties>
         <java.version>21</java.version>
         <jember-cryptography.version>0.7.0</jember-cryptography.version>
-<!--        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>-->
     </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.ai</groupId>
-                <artifactId>spring-ai-bom</artifactId>
-                <version>${spring-ai.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+<!--    <dependencyManagement>-->
+<!--        <dependencies>-->
+<!--            <dependency>-->
+<!--                <groupId>org.springframework.ai</groupId>-->
+<!--                <artifactId>spring-ai-bom</artifactId>-->
+<!--                <version>${spring-ai.version}</version>-->
+<!--                <type>pom</type>-->
+<!--                <scope>import</scope>-->
+<!--            </dependency>-->
+<!--        </dependencies>-->
+<!--    </dependencyManagement>-->
 
     <dependencies>
         <dependency>
@@ -131,6 +130,36 @@
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-tika-document-reader</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-open-ai</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-embeddings-all-minilm-l6-v2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-easy-rag</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-document-parser-apache-tika</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-milvus</artifactId>
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
@@ -301,6 +330,13 @@
                                         <exclude>org.jetbrains.kotlin:kotlin-stdlib</exclude>
                                         <exclude>org.jetbrains:annotations</exclude>
                                         <exclude>org.apache.commons:commons-collections4</exclude>
+                                        <exclude>com.google.guava:guava</exclude>
+                                        <exclude>org.xerial.snappy:snappy-java</exclude>
+                                        <exclude>org.jsoup:jsoup</exclude>
+                                        <exclude>org.codehaus.woodstox:stax2-api</exclude>
+                                        <exclude>org.apache.commons:commons-compress</exclude>
+                                        <exclude>org.testcontainers:testcontainers</exclude>
+                                        <exclude>commons-io:commons-io</exclude>
                                     </excludes>
                                 </requireUpperBoundDeps>
                             </rules>

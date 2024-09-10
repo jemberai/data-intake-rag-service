@@ -16,21 +16,26 @@
  *
  */
 
-package org.jemberai.dataintake.config;
+package org.jemberai.dataintake.embedding.milvus;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.store.embedding.EmbeddingStore;
+import dev.langchain4j.store.embedding.milvus.MilvusEmbeddingStore;
+import org.jemberai.dataintake.embedding.EmbeddingStoreFactory;
 
 /**
  * Created by jt, Spring Framework Guru.
  */
-@Getter
-@Setter
-@Configuration
-@ConfigurationProperties(prefix = "org.jemberai")
-public class VectorStoreProperties {
+public class MilvusEmbeddingStoreFactory implements EmbeddingStoreFactory {
 
-    private String milvusDatabaseName;
+    private final MilvusEmbeddingStore.Builder builder;
+
+    public MilvusEmbeddingStoreFactory(MilvusEmbeddingStore.Builder builder) {
+        this.builder = builder;
+    }
+
+    @Override
+    public EmbeddingStore<TextSegment> createEmbeddingStore(String collectionName) {
+        return builder.collectionName(collectionName).build();
+    }
 }

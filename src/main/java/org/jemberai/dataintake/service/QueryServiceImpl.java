@@ -18,13 +18,10 @@
 
 package org.jemberai.dataintake.service;
 
-import org.jemberai.dataintake.domain.EmbeddingModelEnum;
-import org.jemberai.dataintake.model.QueryRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jemberai.dataintake.model.QueryRequest;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.vectorstore.SearchRequest;
-import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -43,16 +40,17 @@ public class QueryServiceImpl implements QueryService {
     public List<Document> getDocuments(String clientId, QueryRequest queryRequest) {
         log.debug("Querying for documents");
 
-        VectorStore vectorStore = embeddingService
-                .getVectorStore(EmbeddingModelEnum.TEXT_EMBEDDING_3_SMALL, clientId);
+        //todo - update to use the new vector store
+//        VectorStore vectorStore = embeddingService
+//                .getVectorStore(EmbeddingModelEnum.TEXT_EMBEDDING_3_SMALL, clientId);
+//
+//        List<Document> documents = vectorStore.similaritySearch(SearchRequest
+//                .query(queryRequest.getQuery())
+//                .withTopK(queryRequest.getTopK())
+//                .withSimilarityThreshold(queryRequest.getSimilarityThreshold()));
+//
+//        log.debug("Found {} documents", documents.size());
 
-        List<Document> documents = vectorStore.similaritySearch(SearchRequest
-                .query(queryRequest.getQuery())
-                .withTopK(queryRequest.getTopK())
-                .withSimilarityThreshold(queryRequest.getSimilarityThreshold()));
-
-        log.debug("Found {} documents", documents.size());
-
-        return documents;
+        return null;
     }
 }

@@ -24,6 +24,7 @@ import org.jemberai.cryptography.keymanagement.AesKeyDTO;
 import org.jemberai.cryptography.keymanagement.JpaKeyService;
 import org.jemberai.cryptography.keymanagement.KeyUtils;
 import org.jemberai.cryptography.repositories.DefaultEncryptionKeyRepository;
+import org.jemberai.dataintake.config.JemberProperties;
 import org.jemberai.dataintake.domain.EventExtensionRecord;
 import org.jemberai.dataintake.domain.EventRecord;
 import org.jemberai.dataintake.domain.EventRecordChunk;
@@ -45,6 +46,7 @@ import org.springframework.util.MimeType;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.milvus.MilvusContainer;
 
 import javax.sql.DataSource;
 import java.util.*;
@@ -66,6 +68,9 @@ public class PostgresIT {
     @Container
     static PostgreSQLContainer keyStoreDb = new PostgreSQLContainer("postgres:16-alpine");
 
+    @Container
+    public static MilvusContainer milvusContainer = new MilvusContainer("milvusdb/milvus:v2.3.9");
+
     @Autowired
     EventRecordRepository eventRecordRepository;
 
@@ -85,12 +90,14 @@ public class PostgresIT {
     static void beforeAll() {
         primaryDb.start();
         keyStoreDb.start();
+        milvusContainer.start();
     }
 
     @AfterAll
     static void afterAll() {
         primaryDb.stop();
         keyStoreDb.stop();
+        milvusContainer.stop();
     }
 
     @DynamicPropertySource
@@ -101,6 +108,16 @@ public class PostgresIT {
         registry.add("org.jemberai.datasource.primary.password", primaryDb::getPassword);
         registry.add("org.jemberai.datasource.primary.driver-class-name", primaryDb::getDriverClassName);
         registry.add("org.jemberai.jpa.primary.hibernate.ddl-auto", () -> "validate");
+
+        // primary flyway
+        //primary db
+        registry.add("org.jemberai.datasource.primary-flyway.url", primaryDb::getJdbcUrl);
+        registry.add("org.jemberai.datasource.primary-flyway.username", primaryDb::getUsername);
+        registry.add("org.jemberai.datasource.primary-flyway.password", primaryDb::getPassword);
+        registry.add("org.jemberai.datasource.primary-flyway.driver-class-name", primaryDb::getDriverClassName);
+        registry.add("org.jemberai.jpa.primary-flyway.hibernate.ddl-auto", () -> "validate");
+
+       // registry.add("spring.flyway.enabled", () -> false);
 
         //keystore db
         registry.add("org.jemberai.datasource.keystore.url", keyStoreDb::getJdbcUrl);
@@ -114,11 +131,26 @@ public class PostgresIT {
         registry.add("org.jemberai.datasource.keystore-flyway.username", keyStoreDb::getUsername);
         registry.add("org.jemberai.datasource.keystore-flyway.password", keyStoreDb::getPassword);
         registry.add("org.jemberai.datasource.keystore-flyway.driver-class-name", keyStoreDb::getDriverClassName);
+
+        //milvus
+        registry.add("spring.ai.vectorstore.milvus.client.host", milvusContainer::getHost);
+        registry.add("spring.ai.vectorstore.milvus.client.port", () ->  milvusContainer.getMappedPort(19530));
+        registry.add("spring.ai.vectorstore.milvus.client.username", () -> "minioadmin");
+        registry.add("spring.ai.vectorstore.milvus.client.password", () -> "minioadmin");
+
+        //mivlus jember
+        registry.add("org.jemberai.vectorstore.milvus.host", milvusContainer::getHost);
+        registry.add("org.jemberai.vectorstore.milvus.port", () ->  milvusContainer.getMappedPort(19530));
+        registry.add("org.jemberai.vectorstore.milvus.username", () -> "minioadmin");
+        registry.add("org.jemberai.vectorstore.milvus.password", () -> "minioadmin");
     }
 
     @Transactional
     @BeforeEach
     void setUp() {
+
+        JemberProperties foo = new JemberProperties();
+        foo.getLlm().getOpenAi().setApiKey("asdf");
 
         if (jpaKeyService.getDefaultKey(TEST_CLIENT_ID) == null) {
             log.info("Generating AES Key");
@@ -256,6 +288,4 @@ public class PostgresIT {
             .chunks(chunks)
                 .build();
     }
-
-
 }

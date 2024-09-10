@@ -22,5 +22,5 @@ package org.jemberai.dataintake.domain;
  * Created by jt, Spring Framework Guru.
  */
 public enum EmbeddingStatusEnum {
-    NEW, IN_PROGRESS, COMPLETED, ERROR
+    NEW, IN_PROGRESS, COMPLETED, NO_DATA, ERROR
 }

@@ -18,39 +18,31 @@
 
 package org.jemberai.dataintake.service;
 
-import io.milvus.client.MilvusServiceClient;
-import org.jemberai.dataintake.config.VectorStoreProperties;
-import org.jemberai.dataintake.domain.ClientConfiguration;
-import org.jemberai.dataintake.domain.EmbeddingModelEnum;
-import org.jemberai.dataintake.domain.EventRecord;
+import dev.langchain4j.data.document.BlankDocumentException;
+import dev.langchain4j.data.document.Document;
+import dev.langchain4j.data.document.DocumentParser;
+import dev.langchain4j.data.document.DocumentSplitter;
+import dev.langchain4j.data.document.splitter.DocumentSplitters;
+import dev.langchain4j.data.embedding.Embedding;
+import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.output.Response;
+import dev.langchain4j.store.embedding.EmbeddingStore;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.jemberai.dataintake.embedding.EmbeddingStoreFactory;
 import org.jemberai.dataintake.messages.EmbeddingRequestCompleteMessage;
 import org.jemberai.dataintake.messages.EmbeddingRequestMessage;
-import org.jemberai.dataintake.repositories.ClientConfigurationRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import lombok.val;
-import org.apache.tika.mime.MimeTypeException;
-import org.apache.tika.mime.MimeTypes;
-import org.springframework.ai.autoconfigure.openai.OpenAiConnectionProperties;
-import org.springframework.ai.document.Document;
-import org.springframework.ai.document.MetadataMode;
-import org.springframework.ai.embedding.BatchingStrategy;
-import org.springframework.ai.embedding.EmbeddingModel;
-import org.springframework.ai.embedding.TokenCountBatchingStrategy;
-import org.springframework.ai.openai.OpenAiEmbeddingModel;
-import org.springframework.ai.openai.OpenAiEmbeddingOptions;
-import org.springframework.ai.openai.api.OpenAiApi;
-import org.springframework.ai.reader.tika.TikaDocumentReader;
-import org.springframework.ai.transformer.splitter.TextSplitter;
-import org.springframework.ai.transformer.splitter.TokenTextSplitter;
-import org.springframework.ai.vectorstore.MilvusVectorStore;
-import org.springframework.ai.vectorstore.VectorStore;
+import org.jemberai.dataintake.utils.tika.ApacheTikaDocumentMetaParser;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by jt, Spring Framework Guru.
@@ -60,102 +52,70 @@ import java.util.List;
 @Service
 public class EmbeddingServiceImpl implements EmbeddingService {
 
-    private final OpenAiConnectionProperties openAiConnectionProperties;
-    private final MilvusServiceClient milvusClient;
-    private final VectorStoreProperties vectorStoreProperties;
-    private final ClientConfigurationRepository clientConfigurationRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final EmbeddingStoreFactory embeddingStoreFactory;
+    private final EmbeddingModel embeddingModel;
 
+    @SneakyThrows
     @Override
     public void processOpenAPIEmbeddingRequest(EmbeddingRequestMessage message) {
 
-        String fileExtension = null;
-
         try {
-            fileExtension = getFileExtension(message.getEventRecord());
-        } catch (MimeTypeException e) {
+           Document payloadDocument = parse(new ByteArrayInputStream(message.getEventRecord().getData()));
+            processDocument(payloadDocument, message);
+        } catch (BlankDocumentException e) {
             //todo handle better
-            throw new RuntimeException(e);
+            log.warn("Blank document received Event Id: {}", message.getEventRecord().getId());
+
+            applicationEventPublisher.publishEvent(EmbeddingRequestCompleteMessage.builder()
+                    .eventRecord(message.getEventRecord())
+                    .status(EmbeddingRequestCompleteMessage.EmbeddingRequestStatus.EMPTY)
+                    .build());
+        } catch (Exception e) {
+            //todo handle better
+            log.error("Error parsing document Event Id: {}", message.getEventRecord().getId());
+
+            applicationEventPublisher.publishEvent(EmbeddingRequestCompleteMessage.builder()
+                    .eventRecord(message.getEventRecord())
+                    .status(EmbeddingRequestCompleteMessage.EmbeddingRequestStatus.ERROR)
+                    .build());
         }
+    }
 
-        Resource payload = new ByteArrayResource(message.getEventRecord().getData(),
-                message.getEventRecord().getId() + fileExtension);
+    private void processDocument(Document payloadDocument, EmbeddingRequestMessage message){
+        // split the document into segments
+        DocumentSplitter documentSplitter = DocumentSplitters.recursive(300, 0);
+        List<TextSegment> textSegments = documentSplitter.split(payloadDocument);
 
-        TikaDocumentReader documentReader = new TikaDocumentReader(payload);
+        // get the embedding for each segment
+        EmbeddingStore<TextSegment> embeddingStore = embeddingStoreFactory.createEmbeddingStore(message.getEventRecord().getClientId());
+        // add the embedding to the vector store, get id
+        Map<String, TextSegment> segmentMap = new HashMap<>(textSegments.size());
 
-        List<Document> documents = documentReader.get();
-
-        TextSplitter textSplitter = new TokenTextSplitter();
-
-        List<Document> splitDocuments = textSplitter.apply(documents);
-
-        log.debug("Getting embedding and adding to vector store");
-
-        getVectorStore(message.getEmbeddingModel(), message.getEventRecord().getClientId())
-                .add(splitDocuments);
-
-        log.debug("Embedding added to vector store");
+        // store chunk id and id in the database
+        textSegments.forEach(textSegment -> {
+            // get the embedding
+            log.debug("Adding embedding to vector store");
+            Response<Embedding> embedding = embeddingModel.embed(textSegment);
+            // add to the vector store
+            // get the id
+            log.debug("Embedding added to vector store");
+            log.debug(embedding.toString());
+            String id = embeddingStore.add(embedding.content());
+            // store the id and chunk id in the database
+            segmentMap.put(id, textSegment);
+        });
 
         applicationEventPublisher.publishEvent(EmbeddingRequestCompleteMessage.builder()
                 .eventRecord(message.getEventRecord())
+                .textSegments(segmentMap)
+                .document(payloadDocument)
+                .status(EmbeddingRequestCompleteMessage.EmbeddingRequestStatus.SUCCESS)
                 .build());
     }
 
-    /**
-     * Get the file extension based on the content type
-     * <p>
-     * See this link for supported types <a href="https://tika.apache.org/2.9.0/formats.html">...</a>
-     *
-     * @param eventRecord
-     * @return
-     * @throws MimeTypeException
-     */
-    private String getFileExtension(EventRecord eventRecord) throws MimeTypeException {
-        return MimeTypes.getDefaultMimeTypes()
-                .forName(eventRecord.getDataContentType()).getExtension();
-    }
-
-    public VectorStore getVectorStore(EmbeddingModelEnum embeddingModel, String clientId) {
-        EmbeddingModel model = embeddingModel(embeddingModel);
-
-        val collectionName = clientConfigurationRepository.findByClientId(clientId)
-                .map(ClientConfiguration::getMilvusCollection)
-                .orElseThrow(RuntimeException::new);
-
-        return vectorStore(milvusClient, model, collectionName);
-    }
-
-    public EmbeddingModel embeddingModel(EmbeddingModelEnum embeddingModel) {
-        String model = "";
-
-        switch (embeddingModel) {
-            case EmbeddingModelEnum.TEXT_EMBEDDING_3_SMALL  -> model = "text-embedding-3-small";
-            case EmbeddingModelEnum.TEXT_EMBEDDING_3_LARGE -> model = "text-embedding-3-large";
-            case EmbeddingModelEnum.TEXT_EMBEDDING_ADA_002 -> model = "text-embedding-ada-002";
-            default -> model = "text-embedding-3-small";
-        }
-
-        return new OpenAiEmbeddingModel(new OpenAiApi(openAiConnectionProperties.getApiKey()),
-                MetadataMode.EMBED,
-                 OpenAiEmbeddingOptions.builder().withModel(model).build());
-    }
-
-    public VectorStore vectorStore(MilvusServiceClient milvusClient, EmbeddingModel embeddingModel, String collectionName) {
-        MilvusVectorStore.MilvusVectorStoreConfig config = MilvusVectorStore.MilvusVectorStoreConfig.builder()
-                .withCollectionName(collectionName)
-                .build();
-
-        BatchingStrategy batchingStrategy = new TokenCountBatchingStrategy();
-
-        MilvusVectorStore vectorStore = new MilvusVectorStore(milvusClient, embeddingModel, config , true, batchingStrategy);
-
-        // will create collection if missing
-        try {
-            vectorStore.afterPropertiesSet();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        return vectorStore;
+    public Document parse(InputStream inputStream) {
+        DocumentParser parser = new ApacheTikaDocumentMetaParser();
+        return parser.parse(inputStream);
     }
 }

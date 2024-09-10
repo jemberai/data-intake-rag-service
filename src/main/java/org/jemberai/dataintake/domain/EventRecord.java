@@ -128,6 +128,8 @@ public class EventRecord {
     @Enumerated(EnumType.STRING)
     private EmbeddingStatusEnum embeddingStatus = EmbeddingStatusEnum.NEW;
 
+    private String tikaMetadata;
+
     @OneToMany(mappedBy = "eventRecord", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<EventExtensionRecord> extensions = new ArrayList<>();
 
@@ -150,10 +152,5 @@ public class EventRecord {
     public void addChunk(EventRecordChunk chunk) {
         chunk.setEventRecord(this);
         this.chunks.add(chunk);
-
-//        List<EventRecordChunk> newChunks = new ArrayList<>(this.chunks);
-//        newChunks.add(chunk);
-//        this.chunks = newChunks;
-//        chunk.setEventRecord(this);
     }
 }

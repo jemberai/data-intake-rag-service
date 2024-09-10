@@ -16,20 +16,16 @@
  *
  */
 
-package org.jemberai.dataintake.config;
+package org.jemberai.dataintake.embedding;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.store.embedding.EmbeddingStore;
 
 /**
+ * Factory interface for creating EmbeddingStore instances. Implementations of this interface
+ * are specific to the underlying vector store implementation.
  * Created by jt, Spring Framework Guru.
  */
-@NoArgsConstructor
-@Setter
-@Getter
-public class CryptographyProperties {
-    private String jemberKeyId;
-    private String jemberAesKey;
-    private String jemberHmacKey;
+public interface EmbeddingStoreFactory {
+    EmbeddingStore<TextSegment> createEmbeddingStore(String collectionName);
 }

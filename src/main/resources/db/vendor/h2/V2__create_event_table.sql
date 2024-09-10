@@ -30,6 +30,7 @@ create table event_record
     data_content_type varchar(255),
     sha_256 VARCHAR(255) NULL,
     embedding_status VARCHAR(255) NULL,
+    tika_metadata  varchar(2000),
     data_key_id    char(36),
     data_provider  varchar(255),
     data_hmac      varbinary(255),
@@ -46,6 +47,7 @@ create table event_record_chunk
     id             char(36)     not null,
     event_record_id char(36) not null,
     version integer,
+    embedding_id varchar(255),
     data binary large object,
     data_key_id    char(36),
     data_provider  varchar(255),
@@ -56,5 +58,6 @@ create table event_record_chunk
     date_created   TIMESTAMP,
     date_updated   TIMESTAMP,
     primary key (id),
-    constraint event_record_event_record_fk foreign key  (event_record_id) references event_record (id)
+    constraint event_record_event_record_fk foreign key (event_record_id) references event_record (id),
+    constraint embedding_id_uk unique (embedding_id)
 );

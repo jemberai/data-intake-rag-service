@@ -18,11 +18,15 @@
 
 package org.jemberai.dataintake.messages;
 
-import org.jemberai.dataintake.domain.EventRecord;
+import dev.langchain4j.data.document.Document;
+import dev.langchain4j.data.segment.TextSegment;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.jemberai.dataintake.domain.EventRecord;
+
+import java.util.Map;
 
 /**
  * Created by jt, Spring Framework Guru.
@@ -33,5 +37,18 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class EmbeddingRequestCompleteMessage {
 
+    public enum EmbeddingRequestStatus {
+        NEW,
+        SUCCESS,
+        EMPTY,
+        ERROR,
+    }
+
     private EventRecord eventRecord;
+    private Map<String, TextSegment> textSegments;
+    private Document document;
+
+    @Builder.Default
+    private EmbeddingRequestStatus status = EmbeddingRequestStatus.NEW;
+
 }

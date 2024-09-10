@@ -54,6 +54,9 @@ public class EventRecordChunk {
     @JdbcTypeCode(SqlTypes.CHAR)
     private EventRecord eventRecord;
 
+    // This is the embedding id that is used to store the embedding in the embedding store.
+    private String embeddingId;
+
     /**
      * The data for this chunk. Unable to make this transient as it is used in the listener. Turns out that
      * transient fields are sent to listeners when it is a top level entity, but not in collections. The
