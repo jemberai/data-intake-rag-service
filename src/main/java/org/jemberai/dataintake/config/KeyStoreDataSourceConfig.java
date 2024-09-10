@@ -64,22 +64,10 @@ import java.util.UUID;
 public class KeyStoreDataSourceConfig {
 
     @Bean
-    @ConfigurationProperties("org.jemberai.datasource.keystore")
-    public DataSourceProperties dataSourcePropertiesKeyStore() {
-        return new DataSourceProperties();
-    }
-
-    @Bean
     public HikariDataSource dataSourceKeyStore(@Qualifier("dataSourcePropertiesKeyStore") DataSourceProperties dataSourcePropertiesKeyStore) {
         return dataSourcePropertiesKeyStore.initializeDataSourceBuilder()
                 .type(HikariDataSource.class)
                 .build();
-    }
-
-    @Bean
-    @ConfigurationProperties("org.jemberai.jpa.keystore")
-    public JpaProperties jpaPropertiesKeyStore() {
-        return new JpaProperties();
     }
 
     @Bean
@@ -110,11 +98,6 @@ public class KeyStoreDataSourceConfig {
                 "org.jemberai.cryptography.domain", "keyStore");
     }
 
-    @Bean
-    @ConfigurationProperties(prefix = "org.jemberai.cryptography")
-    public CryptographyProperties cryptographyProperties() {
-        return new CryptographyProperties();
-    }
 
     @Bean
     public JpaKeyService jpaKeyService(EncryptionKeysRepository aesKeyRepository, DefaultEncryptionKeyRepository defaultKeyRepository) {
@@ -133,13 +116,13 @@ public class KeyStoreDataSourceConfig {
 
     @Primary
     @Bean("encryptionProviderInternal")
-    public EncryptionProvider encryptionProviderInternal(CryptographyProperties cryptographyProperties) {
+    public EncryptionProvider encryptionProviderInternal(JemberProperties jemberProperties) {
         KeyService keyService = new InMemoryKeyService(AesKeyDTO
                 .builder()
                 .clientId(EncryptionKeysListener.JEMBER_INTERNAL)
-                .keyId(UUID.fromString(cryptographyProperties.getJemberKeyId()))
-                .aesKey(Base64.getDecoder().decode(cryptographyProperties.getJemberAesKey()))
-                .hmacKey(Base64.getDecoder().decode(cryptographyProperties.getJemberHmacKey()))
+                .keyId(UUID.fromString(jemberProperties.getCryptography().getJemberKeyId()))
+                .aesKey(Base64.getDecoder().decode(jemberProperties.getCryptography().getJemberAesKey()))
+                .hmacKey(Base64.getDecoder().decode(jemberProperties.getCryptography().getJemberHmacKey()))
                 .build());
 
         return new EncryptionProviderImpl(keyService);
@@ -150,11 +133,6 @@ public class KeyStoreDataSourceConfig {
         return new ConcurrentMapCacheManager("defaultKey", "getKeyById");
     }
 
-    @Bean
-    @ConfigurationProperties("org.jemberai.datasource.keystore-flyway")
-    public DataSourceProperties dataSourcePropertiesKeyStoreFlyway() {
-        return new DataSourceProperties();
-    }
 
     @Bean
     public DataSource dataSourceKeyStoreFlyway(@Qualifier("dataSourcePropertiesKeyStoreFlyway") DataSourceProperties dataSourcePropertiesKeyStore) {
