@@ -44,7 +44,7 @@ management:
 logging:
   level:
     org.jemberai.dataintake: trace
-    org.zalando.logbook: trace
+   # org.zalando.logbook: trace
     # org.springframework.orm: trace
     root: ${LOG_LEVEL:info}
   include-application-name: true

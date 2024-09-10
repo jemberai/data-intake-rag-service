@@ -36,6 +36,15 @@ public class MilvusEmbeddingStoreFactory implements EmbeddingStoreFactory {
 
     @Override
     public EmbeddingStore<TextSegment> createEmbeddingStore(String collectionName) {
+
+        if (collectionName == null) {
+            throw new IllegalArgumentException("Collection name must not be null");
+        }
+
+        if (collectionName.contains("-")){
+            collectionName = collectionName.replace("-", "_");
+        }
+
         return builder.collectionName(collectionName).build();
     }
 }

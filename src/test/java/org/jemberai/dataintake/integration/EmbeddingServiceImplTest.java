@@ -16,49 +16,33 @@
  *
  */
 
-package org.jemberai.dataintake.service;
+package org.jemberai.dataintake.integration;
 
 import org.jemberai.dataintake.domain.EmbeddingModelEnum;
 import org.jemberai.dataintake.domain.EventRecord;
 import org.jemberai.dataintake.domain.ModelEnum;
 import org.jemberai.dataintake.messages.EmbeddingRequestCompleteMessage;
 import org.jemberai.dataintake.messages.EmbeddingRequestMessage;
-import org.junit.jupiter.api.Disabled;
+import org.jemberai.dataintake.service.EmbeddingServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.autoconfigure.openai.OpenAiConnectionProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.event.RecordApplicationEvents;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.milvus.MilvusContainer;
 
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@Disabled
 @DirtiesContext
 @Testcontainers
 @SpringBootTest
 @RecordApplicationEvents
-class EmbeddingServiceImplTest {
-
-    @Container
-    public static MilvusContainer milvusContainer = new MilvusContainer("milvusdb/milvus:v2.3.9");
-
-    @DynamicPropertySource
-    public static void milvusProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.ai.vectorstore.milvus.client.host", milvusContainer::getHost);
-        registry.add("spring.ai.vectorstore.milvus.client.port", () ->  milvusContainer.getMappedPort(19530));
-        registry.add("spring.ai.vectorstore.milvus.client.username", () -> "minioadmin");
-        registry.add("spring.ai.vectorstore.milvus.client.password", () -> "minioadmin");
-    }
+class EmbeddingServiceImplTest extends BaseIT{
 
     @Autowired
     EmbeddingServiceImpl embeddingService;
