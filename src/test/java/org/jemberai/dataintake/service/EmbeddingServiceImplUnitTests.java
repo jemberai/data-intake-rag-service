@@ -159,6 +159,7 @@ class EmbeddingServiceImplUnitTests {
             System.out.println(f.length());
             System.out.println(f.canRead());
             System.out.println(f.exists());
+            System.out.println(f.getName().equals("index2.html"));
         }) ;
 
 
