@@ -147,7 +147,7 @@ class EmbeddingServiceImplUnitTests {
     @ValueSource(strings = { "files/file-sample_100kb.docx",
             "files/file_example_XLS_10.xls",
             "files/file_example_XLSX_10.xlsx", "files/file_example_XML_24kb.xml",
-            "files/index2.html"})
+            "files/index2.html", "files/htmlfile.html"})
     void testVariousDocFormats(String fileName) throws IOException {
 
         log.info("Processing file: " + fileName);
