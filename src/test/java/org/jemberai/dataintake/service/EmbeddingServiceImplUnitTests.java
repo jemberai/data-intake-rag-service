@@ -25,7 +25,9 @@ import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
 import dev.langchain4j.store.embedding.EmbeddingStore;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.jemberai.dataintake.config.JemberProperties;
 import org.jemberai.dataintake.domain.EmbeddingStatusEnum;
 import org.jemberai.dataintake.domain.EventRecord;
 import org.jemberai.dataintake.embedding.EmbeddingStoreFactory;
@@ -42,6 +44,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.Resource;
+import org.springframework.test.context.ContextConfiguration;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -58,7 +61,9 @@ import static org.mockito.Mockito.when;
 /**
  * Created by jt, Spring Framework Guru.
  */
+@Slf4j
 @SpringBootTest
+@ContextConfiguration(classes = {JemberProperties.class})
 class EmbeddingServiceImplUnitTests {
 
     @Value("classpath:files/St.-Anthonys-Triathlon-Olympic-Bike-Map-23-3002600_Final.pdf")
@@ -142,6 +147,8 @@ class EmbeddingServiceImplUnitTests {
             "files/file_example_XLSX_10.xlsx", "files/file_example_XML_24kb.xml",
             "files/index.html"})
     void testVariousDocFormats(String fileName) {
+
+        log.info("Processing file: " + fileName);
 
         InputStream inputStream = getClass().getClassLoader().getResourceAsStream(fileName);
 
