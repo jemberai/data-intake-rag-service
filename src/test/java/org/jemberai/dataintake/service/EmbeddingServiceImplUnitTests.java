@@ -47,8 +47,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -149,6 +151,11 @@ class EmbeddingServiceImplUnitTests {
     void testVariousDocFormats(String fileName) throws IOException {
 
         log.info("Processing file: " + fileName);
+
+        File file = new File(getClass().getClassLoader().getResource("files").getFile());
+        //System.out.println(file.listFiles());
+        Arrays.stream(file.listFiles()).forEach(f -> System.out.println(f.getName()));
+
 
         InputStream inputStream = getClass().getClassLoader().getResourceAsStream(fileName);
 
