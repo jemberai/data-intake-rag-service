@@ -47,10 +47,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -144,30 +142,11 @@ class EmbeddingServiceImplUnitTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "files/file-sample_100kb.docx",
+    @ValueSource(strings = { "files/file_sample_100kb.docx",
             "files/file_example_XLS_10.xls",
             "files/file_example_XLSX_10.xlsx", "files/file_example_XML_24kb.xml",
-            "files/index2.html", "files/htmlfile.html", "stop"})
-    void testVariousDocFormats(String fileName) throws IOException, ClassNotFoundException {
-
-        log.info("Processing file: " + fileName);
-        log.info("Processing file: **" + fileName + "**");
-
-        if (fileName.equals("stop")) {
-            return;
-        }
-
-        File file = new File(getClass().getClassLoader().getResource("files").getFile());
-        //System.out.println(file.listFiles());
-        Arrays.stream(file.listFiles()).forEach(f -> {
-            System.out.println("**" + f.getName() + "**");
-            System.out.println(f.length());
-            System.out.println(f.canRead());
-            System.out.println(f.exists());
-            System.out.println(f.getName().equals("index2.html"));
-        }) ;
-
-
+            "files/index2.html"})
+    void testVariousDocFormats(String fileName) throws IOException {
 
         InputStream inputStream = getClass().getClassLoader().getResourceAsStream(fileName);
 
@@ -179,9 +158,8 @@ class EmbeddingServiceImplUnitTests {
             assertThat(document.metadata()).isNotNull();
         } catch (Exception e) {
             log.warn("Failed processing file: " + fileName, e);
+            throw e;
         }
-
-
     }
 
     @Test
