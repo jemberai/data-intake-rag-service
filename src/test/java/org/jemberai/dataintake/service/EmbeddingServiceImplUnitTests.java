@@ -146,11 +146,14 @@ class EmbeddingServiceImplUnitTests {
             "files/file_example_XLS_10.xls",
             "files/file_example_XLSX_10.xlsx", "files/file_example_XML_24kb.xml",
             "files/index.html"})
-    void testVariousDocFormats(String fileName) {
+    void testVariousDocFormats(String fileName) throws IOException {
 
         log.info("Processing file: " + fileName);
 
+
         InputStream inputStream = getClass().getClassLoader().getResourceAsStream(fileName);
+        InputStream inputStream2 = getClass().getClassLoader().getResourceAsStream(fileName);
+        log.info("File Bytes: " + inputStream2.readAllBytes().length);
 
         Document document = embeddingService.parse(inputStream);
 
