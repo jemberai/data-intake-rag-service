@@ -151,11 +151,11 @@ class EmbeddingServiceImplUnitTests {
     void testVariousDocFormats(String fileName) throws IOException {
 
         log.info("Processing file: " + fileName);
-
+        log.info("Processing file: **" + fileName + "**");
         File file = new File(getClass().getClassLoader().getResource("files").getFile());
         //System.out.println(file.listFiles());
         Arrays.stream(file.listFiles()).forEach(f -> {
-            System.out.println(f.getName());
+            System.out.println("**" + f.getName() + "**");
             System.out.println(f.length());
             System.out.println(f.canRead());
             System.out.println(f.exists());
