@@ -16,11 +16,20 @@
  *
  */
 
-package org.jemberai.dataintake.domain;
+package org.jemberai.dataintake.repositories;
+
+import org.jemberai.dataintake.domain.EventRecordChunk;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by jt, Spring Framework Guru.
  */
-public enum EmbeddingStatusEnum {
-    NEW, IN_PROGRESS, COMPLETED, NO_DATA, ERROR
+public interface EventRecordChunkRepository extends JpaRepository<EventRecordChunk, UUID> {
+
+    List<EventRecordChunk> findAllByEmbeddingIdIn(List<String> embeddingIds);
+
+    List<EventRecordChunk> findAllByEventRecord_ClientIdAndEmbeddingIdIn(String clientId, List<String> embeddingIds);
 }

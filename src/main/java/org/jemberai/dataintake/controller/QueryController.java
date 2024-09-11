@@ -18,10 +18,10 @@
 
 package org.jemberai.dataintake.controller;
 
-import org.jemberai.dataintake.model.QueryRequest;
-import org.jemberai.dataintake.service.QueryService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.ai.document.Document;
+import org.jemberai.dataintake.model.QueryRequest;
+import org.jemberai.dataintake.model.QueryResponseDocument;
+import org.jemberai.dataintake.service.QueryService;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,9 +40,9 @@ public class QueryController {
     private final QueryService queryService;
 
     @PostMapping("/v1/query")
-    public List<Document> getDocuments(@RequestParam(required = false) String clientId,
-                                       @RequestBody QueryRequest queryRequest,
-                                       Authentication authentication) {
+    public List<QueryResponseDocument> getDocuments(@RequestParam(required = false) String clientId,
+                                                    @RequestBody QueryRequest queryRequest,
+                                                    Authentication authentication) {
 
         //todo add clientId to query ability
         //get authentication user from spring security

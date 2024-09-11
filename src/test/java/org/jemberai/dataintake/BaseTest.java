@@ -27,13 +27,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.milvus.MilvusContainer;
 
 import java.time.Instant;
 import java.util.List;
@@ -49,16 +45,16 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 @SpringBootTest
 public class BaseTest {
 
-    @Container
-    public static MilvusContainer milvusContainer = new MilvusContainer("milvusdb/milvus:v2.3.9");
-
-    @DynamicPropertySource
-    public static void milvusProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.ai.vectorstore.milvus.client.host", milvusContainer::getHost);
-        registry.add("spring.ai.vectorstore.milvus.client.port", () ->  milvusContainer.getMappedPort(19530));
-        registry.add("spring.ai.vectorstore.milvus.client.username", () -> "minioadmin");
-        registry.add("spring.ai.vectorstore.milvus.client.password", () -> "minioadmin");
-    }
+//    @Container
+//    public static MilvusContainer milvusContainer = new MilvusContainer("milvusdb/milvus:v2.3.9");
+//
+//    @DynamicPropertySource
+//    public static void milvusProperties(DynamicPropertyRegistry registry) {
+//        registry.add("spring.ai.vectorstore.milvus.client.host", milvusContainer::getHost);
+//        registry.add("spring.ai.vectorstore.milvus.client.port", () ->  milvusContainer.getMappedPort(19530));
+//        registry.add("spring.ai.vectorstore.milvus.client.username", () -> "minioadmin");
+//        registry.add("spring.ai.vectorstore.milvus.client.password", () -> "minioadmin");
+//    }
 
     @Autowired
     public WebApplicationContext wac;

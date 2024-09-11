@@ -16,39 +16,25 @@
  *
  */
 
-package org.jemberai.dataintake.messages;
+package org.jemberai.dataintake.model;
 
-import dev.langchain4j.data.document.Document;
-import dev.langchain4j.data.segment.TextSegment;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.jemberai.dataintake.domain.EventRecord;
 
 import java.util.Map;
 
 /**
  * Created by jt, Spring Framework Guru.
  */
-@Data
-@Builder
 @AllArgsConstructor
-@NoArgsConstructor
-public class EmbeddingRequestCompleteMessage {
-
-    public enum EmbeddingRequestStatus {
-        NEW,
-        SUCCESS,
-        EMPTY,
-        ERROR,
-    }
-
-    private EventRecord eventRecord;
-    private Map<String, TextSegment> textSegments;
-    private Document document;
-
-    @Builder.Default
-    private EmbeddingRequestStatus status = EmbeddingRequestStatus.NEW;
-
+@Builder
+@Data
+public class QueryResponseDocument {
+    String id;
+    String content;
+    @JsonProperty(index = 100)
+    private float[] embedding = new float[0];
+    private Map<String, Object> metadata;
 }

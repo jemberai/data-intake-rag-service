@@ -18,16 +18,14 @@
 
 package org.jemberai.dataintake.controller;
 
-import io.milvus.client.MilvusClient;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.jemberai.dataintake.BaseTest;
 import org.jemberai.dataintake.domain.EmbeddingStatusEnum;
 import org.jemberai.dataintake.messages.EmbeddingRequestCompleteMessage;
 import org.jemberai.dataintake.repositories.EventRecordRepository;
-import lombok.val;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.springframework.ai.autoconfigure.vectorstore.milvus.MilvusServiceClientProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -74,11 +72,6 @@ class EventControllerTest extends BaseTest {
     @Autowired
     EventRecordRepository eventRecordRepository;
 
-    @Autowired
-    MilvusServiceClientProperties milvusServiceClientProperties;
-
-    @Autowired
-    MilvusClient milvusClient;
 
     @Autowired
     ApplicationEvents applicationEvents;

@@ -28,13 +28,14 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
  * Created by jt, Spring Framework Guru.
  */
-@ToString(exclude = "extensions")
+@ToString(exclude = {"extensions", "data", "encryptedValue"})
 @Getter
 @Setter
 @RequiredArgsConstructor
@@ -43,11 +44,12 @@ import java.util.UUID;
 public class EventRecord {
 
     @Builder
-    public EventRecord(UUID id, String clientId, String specVersion, String eventType, String source, String subject, String eventId,
-                       OffsetDateTime time, String dataContentType, byte[] data, String sha256,
-                       EmbeddingStatusEnum embeddingStatus, Set<EventExtensionRecord> extensions,
-                       LocalDateTime dateCreated, LocalDateTime dateUpdated) {
+    public EventRecord(UUID id, Integer version, String clientId, String specVersion, String eventType, String source,
+                       String subject, String eventId, OffsetDateTime time, String dataContentType,
+                       byte[] data, String sha256, EmbeddingStatusEnum embeddingStatus, List<EventExtensionRecord> extensions,
+                          List<EventRecordChunk> chunks, LocalDateTime dateCreated, LocalDateTime dateUpdated) {
         this.id = id;
+        this.version = version;
         this.clientId = clientId;
         this.specVersion = specVersion;
         this.eventType = eventType;
@@ -60,11 +62,17 @@ public class EventRecord {
         this.sha256 = sha256;
         if (embeddingStatus != null) this.embeddingStatus = embeddingStatus;
         this.extensions = extensions;
+        this.chunks = chunks;
         this.dateCreated = dateCreated;
         this.dateUpdated = dateUpdated;
+
         //Keeps JPA happy
-        if (this.extensions != null) {
+        if (extensions != null) {
             this.extensions.forEach(extension -> extension.setEventRecord(this));
+        }
+
+        if (this.chunks != null) {
+            this.chunks.forEach(chunk -> chunk.setEventRecord(this));
         }
     }
 
@@ -73,6 +81,9 @@ public class EventRecord {
     @JdbcTypeCode(SqlTypes.CHAR)
     @Column(length = 36, columnDefinition = "char(36)", updatable = false, nullable = false)
     private UUID id;
+
+    @Version
+    private Integer version;
 
     private String clientId;
 
@@ -117,12 +128,29 @@ public class EventRecord {
     @Enumerated(EnumType.STRING)
     private EmbeddingStatusEnum embeddingStatus = EmbeddingStatusEnum.NEW;
 
+    private String tikaMetadata;
+
     @OneToMany(mappedBy = "eventRecord", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private Set<EventExtensionRecord> extensions;
+    private List<EventExtensionRecord> extensions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "eventRecord", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private List<EventRecordChunk> chunks = new ArrayList<>();
 
     @CreationTimestamp
     private LocalDateTime dateCreated;
 
     @UpdateTimestamp
     private LocalDateTime dateUpdated;
+
+    public void addExtension(EventExtensionRecord extension) {
+        List<EventExtensionRecord> newExtensions = new ArrayList<>(extensions);
+        newExtensions.add(extension);
+        extensions = newExtensions;
+        extension.setEventRecord(this);
+    }
+
+    public void addChunk(EventRecordChunk chunk) {
+        chunk.setEventRecord(this);
+        this.chunks.add(chunk);
+    }
 }

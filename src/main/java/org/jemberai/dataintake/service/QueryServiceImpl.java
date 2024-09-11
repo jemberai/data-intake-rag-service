@@ -18,13 +18,20 @@
 
 package org.jemberai.dataintake.service;
 
-import org.jemberai.dataintake.domain.EmbeddingModelEnum;
-import org.jemberai.dataintake.model.QueryRequest;
+import dev.langchain4j.data.embedding.Embedding;
+import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.store.embedding.EmbeddingMatch;
+import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
+import dev.langchain4j.store.embedding.EmbeddingSearchResult;
+import dev.langchain4j.store.embedding.EmbeddingStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.document.Document;
-import org.springframework.ai.vectorstore.SearchRequest;
-import org.springframework.ai.vectorstore.VectorStore;
+import org.jemberai.dataintake.domain.EventRecordChunk;
+import org.jemberai.dataintake.embedding.EmbeddingStoreFactory;
+import org.jemberai.dataintake.model.QueryRequest;
+import org.jemberai.dataintake.model.QueryResponseDocument;
+import org.jemberai.dataintake.repositories.EventRecordChunkRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,22 +44,32 @@ import java.util.List;
 @RequiredArgsConstructor
 public class QueryServiceImpl implements QueryService {
 
-    private final EmbeddingService embeddingService;
+    private final EmbeddingStoreFactory embeddingStoreFactory;
+    private final EmbeddingModel embeddingModel;
+    private final EventRecordChunkRepository eventRecordChunkRepository;
 
     @Override
-    public List<Document> getDocuments(String clientId, QueryRequest queryRequest) {
+    public List<QueryResponseDocument> getDocuments(String clientId, QueryRequest queryRequest) {
         log.debug("Querying for documents");
 
-        VectorStore vectorStore = embeddingService
-                .getVectorStore(EmbeddingModelEnum.TEXT_EMBEDDING_3_SMALL, clientId);
+        EmbeddingStore<TextSegment> embeddingStore = embeddingStoreFactory.createEmbeddingStore(clientId, embeddingModel.dimension());
 
-        List<Document> documents = vectorStore.similaritySearch(SearchRequest
-                .query(queryRequest.getQuery())
-                .withTopK(queryRequest.getTopK())
-                .withSimilarityThreshold(queryRequest.getSimilarityThreshold()));
+        Embedding queryEmbedding = embeddingModel.embed(queryRequest.getQuery()).content();
 
-        log.debug("Found {} documents", documents.size());
+        EmbeddingSearchResult<TextSegment> result = embeddingStore.search(EmbeddingSearchRequest.builder()
+                        .queryEmbedding(queryEmbedding)
+                .build());
 
-        return documents;
+        List<String> matchIds = result.matches().stream().map(EmbeddingMatch::embeddingId)
+                .toList();
+
+        List<EventRecordChunk> chunks = eventRecordChunkRepository.findAllByEventRecord_ClientIdAndEmbeddingIdIn(clientId, matchIds);
+
+        return chunks.stream().map(chunk -> QueryResponseDocument.builder()
+                .id(chunk.getId().toString())
+                .id(chunk.getEmbeddingId())
+                .content(new String(chunk.getData()))
+                .build())
+                .toList();
     }
 }

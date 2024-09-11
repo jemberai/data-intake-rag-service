@@ -16,20 +16,21 @@
  *
  */
 
-package org.jemberai.dataintake.config;
+package org.jemberai.dataintake.model;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by jt, Spring Framework Guru.
  */
-@NoArgsConstructor
-@Setter
-@Getter
-public class CryptographyProperties {
-    private String jemberKeyId;
-    private String jemberAesKey;
-    private String jemberHmacKey;
+@AllArgsConstructor
+@Builder
+@Data
+public class QueryResponse {
+    List<QueryResponseDocument> documents = new ArrayList<>();
 }

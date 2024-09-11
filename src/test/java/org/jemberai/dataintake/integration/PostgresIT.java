@@ -21,30 +21,22 @@ package org.jemberai.dataintake.integration;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jemberai.cryptography.keymanagement.AesKeyDTO;
-import org.jemberai.cryptography.keymanagement.JpaKeyService;
 import org.jemberai.cryptography.keymanagement.KeyUtils;
-import org.jemberai.cryptography.repositories.DefaultEncryptionKeyRepository;
+import org.jemberai.dataintake.config.JemberProperties;
+import org.jemberai.dataintake.domain.EventExtensionRecord;
 import org.jemberai.dataintake.domain.EventRecord;
-import org.jemberai.dataintake.repositories.EventRecordRepository;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.jemberai.dataintake.domain.EventRecordChunk;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeType;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import javax.sql.DataSource;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,67 +48,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SpringBootTest
-public class PostgresIT {
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer primaryDb = new PostgreSQLContainer("postgres:16-alpine");
-
-    @Container
-    static PostgreSQLContainer keyStoreDb = new PostgreSQLContainer("postgres:16-alpine");
-
-    @Autowired
-    EventRecordRepository eventRecordRepository;
-
-    @Autowired
-    DefaultEncryptionKeyRepository defaultEncryptionKeyRepository;
-
-    @Autowired
-    JpaKeyService jpaKeyService;
-
-    @Autowired
-    @Qualifier("dataSourcePrimary")
-    DataSource dataSourcePrimary;
-
-    public static final String TEST_CLIENT_ID = "test";
-
-    @BeforeAll
-    static void beforeAll() {
-        primaryDb.start();
-        keyStoreDb.start();
-    }
-
-    @AfterAll
-    static void afterAll() {
-        primaryDb.stop();
-        keyStoreDb.stop();
-    }
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        //primary db
-        registry.add("org.jemberai.datasource.primary.url", primaryDb::getJdbcUrl);
-        registry.add("org.jemberai.datasource.primary.username", primaryDb::getUsername);
-        registry.add("org.jemberai.datasource.primary.password", primaryDb::getPassword);
-        registry.add("org.jemberai.datasource.primary.driver-class-name", primaryDb::getDriverClassName);
-        registry.add("org.jemberai.jpa.primary.hibernate.ddl-auto", () -> "validate");
-
-        //keystore db
-        registry.add("org.jemberai.datasource.keystore.url", keyStoreDb::getJdbcUrl);
-        registry.add("org.jemberai.datasource.keystore.username", keyStoreDb::getUsername);
-        registry.add("org.jemberai.datasource.keystore.password", keyStoreDb::getPassword);
-        registry.add("org.jemberai.datasource.keystore.driver-class-name", keyStoreDb::getDriverClassName);
-        registry.add("org.jemberai.jpa.keystore.hibernate.ddl-auto", () -> "validate");
-
-        //keystore flyway
-        registry.add("org.jemberai.datasource.keystore-flyway.url", keyStoreDb::getJdbcUrl);
-        registry.add("org.jemberai.datasource.keystore-flyway.username", keyStoreDb::getUsername);
-        registry.add("org.jemberai.datasource.keystore-flyway.password", keyStoreDb::getPassword);
-        registry.add("org.jemberai.datasource.keystore-flyway.driver-class-name", keyStoreDb::getDriverClassName);
-    }
+public class PostgresIT extends BaseIT {
 
     @Transactional
     @BeforeEach
     void setUp() {
+
+        JemberProperties foo = new JemberProperties();
+        foo.getLlm().getOpenAi().setApiKey("asdf");
 
         if (jpaKeyService.getDefaultKey(TEST_CLIENT_ID) == null) {
             log.info("Generating AES Key");
@@ -134,7 +73,7 @@ public class PostgresIT {
     void testSaveRecord() {
         //given
         log.info("Saving Event Record");
-        val eventRecord = buildEventRecord;
+        val eventRecord = getBuildEventRecord();
         val savedEventRecord = eventRecordRepository.saveAndFlush(eventRecord);
 
         log.info("Saved Event Record: {}", savedEventRecord);
@@ -142,7 +81,17 @@ public class PostgresIT {
         val count = eventRecordRepository.count();
         assertThat(count).isGreaterThan(0);
         assertThat(savedEventRecord.getData()).isEqualTo(eventRecord.getData());
-
+        assertThat(savedEventRecord.getDataContentType()).isEqualTo(eventRecord.getDataContentType());
+        assertThat(savedEventRecord.getSpecVersion()).isEqualTo(eventRecord.getSpecVersion());
+        assertThat(savedEventRecord.getSource()).isEqualTo(eventRecord.getSource());
+        assertThat(savedEventRecord.getExtensions()).hasSize(1);
+        assertThat(savedEventRecord.getChunks()).hasSize(1);
+        assertThat(savedEventRecord.getExtensions().iterator().next().getFieldName()).isEqualTo("test");
+        assertThat(savedEventRecord.getExtensions().iterator().next().getId()).isNotNull();
+        assertThat(savedEventRecord.getChunks().iterator().next().getData()).isEqualTo(eventRecord.getChunks().iterator().next().getData());
+        assertThat(savedEventRecord.getChunks().iterator().next().getEncryptedValue()).isNotNull();
+        assertThat(savedEventRecord.getChunks().iterator().next().getEventRecord()).isNotNull();
+        assertThat(savedEventRecord.getChunks().iterator().next().getId()).isNotNull();
         //verify data is encrypted in database, query db directly
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSourcePrimary);
 
@@ -156,12 +105,92 @@ public class PostgresIT {
         assertThat(dataAsString).isNotEqualTo(eventRecord.getData().toString());
     }
 
-    EventRecord buildEventRecord = EventRecord.builder()
-            .eventId("123")
-            .clientId(TEST_CLIENT_ID)
-            .data("This is some text".getBytes())
-            .specVersion("1.0")
-            .dataContentType(MimeType.valueOf("text/plain").toString())
-            .source("test")
-            .build();
+    @Transactional
+    @Test
+    void testAddOfChildRecords() {
+        //given
+        log.info("Saving Event Record");
+        val eventRecord = getBuildEventRecord();
+        val savedEventRecord = eventRecordRepository.saveAndFlush(eventRecord);
+
+        val fetchedEventRecord = eventRecordRepository.findById(savedEventRecord.getId()).get();
+
+        fetchedEventRecord.addExtension(EventExtensionRecord.builder()
+                .fieldName("test2")
+                .fieldValue("value2")
+                .build());
+
+        fetchedEventRecord.addChunk(EventRecordChunk.builder()
+                .data("This is some more text".getBytes())
+                        .provider("foo")
+                .build());
+
+        log.debug("Saving updated Event Record with new chunk");
+        val updatedEventRecord = eventRecordRepository.saveAndFlush(fetchedEventRecord);
+
+        assertThat(updatedEventRecord.getExtensions()).hasSize(2);
+        assertThat(updatedEventRecord.getChunks()).hasSize(2);
+
+        eventRecord.getChunks().forEach(chunk -> {
+            assertThat(chunk.getEncryptedValue()).isNotNull();
+            assertThat(chunk.getEventRecord()).isNotNull();
+            assertThat(chunk.getId()).isNotNull();
+
+            log.debug(new String(chunk.getData()));
+        });
+
+        val checkUpdatedRecord = eventRecordRepository.findById(updatedEventRecord.getId()).get();
+
+        assertThat(checkUpdatedRecord.getExtensions()).hasSize(2);
+        assertThat(checkUpdatedRecord.getChunks()).hasSize(2);
+
+        checkUpdatedRecord.getChunks().forEach(chunk -> {
+            assertThat(chunk.getEncryptedValue()).isNotNull();
+            assertThat(chunk.getEventRecord()).isNotNull();
+            assertThat(chunk.getId()).isNotNull();
+
+            log.debug(new String(chunk.getData()));
+        });
+
+        //verify data is encrypted in database, query db directly
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSourcePrimary);
+
+        val result = jdbcTemplate.queryForRowSet("SELECT * FROM event_record_chunk");
+
+        assertThat(result).isNotNull();
+
+        //verify data is encrypted in the database
+        while (result.next()) {
+            Object obj = result.getObject(5);
+            byte[] data = (byte[]) obj;
+            assertThat(data).isNotNull();
+            String dataAsString = new String(data);
+            assertThat(dataAsString).isEqualTo("encrypted");
+            log.debug(dataAsString);
+        }
+    }
+
+    EventRecord getBuildEventRecord() {
+        List<EventExtensionRecord> extensionRecords = new ArrayList<>();
+        extensionRecords.add(EventExtensionRecord.builder()
+                .fieldName("test")
+                .fieldValue("value")
+                .build());
+
+        List<EventRecordChunk> chunks = new ArrayList<>();
+        chunks.add(EventRecordChunk.builder()
+                .data("This is some text".getBytes())
+                .build());
+
+        return EventRecord.builder()
+                .eventId("123")
+                .clientId(TEST_CLIENT_ID)
+                .data("This is some text".getBytes())
+                .specVersion("1.0")
+                .dataContentType(MimeType.valueOf("text/plain").toString())
+                .source("test")
+                .extensions(extensionRecords)
+            .chunks(chunks)
+                .build();
+    }
 }

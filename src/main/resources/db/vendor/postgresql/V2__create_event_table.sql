@@ -19,6 +19,7 @@
 create table event_record
 (
     id             char(36)     not null,
+    version integer,
     client_id      varchar(255),
     spec_version   varchar(4)   not null,
     event_type     varchar(255),
@@ -29,6 +30,7 @@ create table event_record
     data_content_type varchar(255),
     sha_256 VARCHAR(255) NULL,
     embedding_status VARCHAR(255) NULL,
+    tika_metadata  varchar(2000),
     data_key_id    char(36),
     data_provider  varchar(255),
     data_hmac      bytea,
@@ -37,4 +39,25 @@ create table event_record
     date_created   TIMESTAMP,
     date_updated   TIMESTAMP,
     primary key (id)
+);
+
+create table event_record_chunk
+(
+    id             char(36)  not null,
+    version integer,
+    event_record_id char(36) not null,
+    embedding_id varchar(255),
+    data bytea,
+    data_key_id    char(36),
+    data_provider  varchar(255),
+    data_hmac      bytea,
+    data_initialization_vector bytea,
+    data_encrypted_value bytea,
+    sha_256 VARCHAR(255) NULL,
+    date_created   TIMESTAMP,
+    date_updated   TIMESTAMP,
+    primary key (id),
+    constraint event_record_event_record_fk
+        foreign key (event_record_id) references event_record (id),
+    constraint embedding_id_uk unique (embedding_id)
 );

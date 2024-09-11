@@ -22,6 +22,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.boot.autoconfigure.flyway.FlywayDataSource;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateProperties;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
@@ -53,23 +54,17 @@ public class DataSourceConfig {
 
     @Primary
     @Bean
-    @ConfigurationProperties("org.jemberai.datasource.primary")
-    public DataSourceProperties dataSourcePropertiesPrimary() {
-        return new DataSourceProperties();
-    }
-
-    @Primary
-    @Bean
-    public HikariDataSource dataSourcePrimary(DataSourceProperties dataSourcePropertiesPrimary) {
+    public HikariDataSource dataSourcePrimary(@Qualifier("dataSourcePropertiesPrimary") DataSourceProperties dataSourcePropertiesPrimary) {
         return dataSourcePropertiesPrimary.initializeDataSourceBuilder()
                 .type(HikariDataSource.class)
                 .build();
     }
 
-    @Bean
-    @ConfigurationProperties("org.jemberai.jpa.primary")
-    public JpaProperties jpaPropertiesPrimary() {
-        return new JpaProperties();
+    @FlywayDataSource
+    @Bean("dataSourcePrimaryFlyway")
+    public DataSource dataSourcePrimaryFlyway(@Qualifier("dataSourcePropertiesPrimaryFlyway") DataSourceProperties dataSourcePropertiesKeyStore) {
+        return dataSourcePropertiesKeyStore.initializeDataSourceBuilder()
+                .build();
     }
 
     @Primary
@@ -89,8 +84,8 @@ public class DataSourceConfig {
 
     @Primary
     @Bean("entityManagerFactoryPrimary")
-    public LocalContainerEntityManagerFactoryBean entityManagerFactoryPrimary(HibernateBaseDataSourceConfig hibernateBaseDataSourceConfigPrimary,
-                                                                              JpaProperties jpaPropertiesPrimary,
+    public LocalContainerEntityManagerFactoryBean entityManagerFactoryPrimary(@Qualifier("hibernateBaseDataSourceConfigPrimary") HibernateBaseDataSourceConfig hibernateBaseDataSourceConfigPrimary,
+                                                                              @Qualifier("jpaPropertiesPrimary") JpaProperties jpaPropertiesPrimary,
                                                                               ConfigurableListableBeanFactory beanFactory) {
         EntityManagerFactoryBuilder emfBuilder = hibernateBaseDataSourceConfigPrimary.createEntityManagerFactoryBuilder(jpaPropertiesPrimary);
 
@@ -105,7 +100,7 @@ public class DataSourceConfig {
     }
 
     @Bean
-    public OpenEntityManagerInViewInterceptor openEntityManagerInViewInterceptor(JpaProperties jpaPropertiesPrimary) {
+    public OpenEntityManagerInViewInterceptor openEntityManagerInViewInterceptor(@Qualifier("jpaPropertiesPrimary") JpaProperties jpaPropertiesPrimary) {
         if (jpaPropertiesPrimary.getOpenInView() == null) {
             log.warn("spring.jpa.open-in-view is enabled by default. "
                     + "Therefore, database queries may be performed during view "

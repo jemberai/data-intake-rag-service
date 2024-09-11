@@ -2,8 +2,21 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jemberai_data-intake-rag-service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=jemberai_data-intake-rag-service)
 # Data Intake RAG Service
 
-This repository contains the Data Intake Service. This service allows for the intake of data from 
-clients. The data is provided via Cloud Events, and the payload is stored in a database.
+This repository contains the Data Intake RAG Service. This service allows for the intake of data from 
+clients. The data is provided via Cloud Events, and the payload is stored in a database. The Cloud Event specification 
+allows for the intake of data in nearly any format (ie json, xml, csv, pdf, docx, etc).
+
+Documents are stored encrypted using client specific encryption keys. The keys are stored in a separate database and 
+are also encrypted at rest.
+
+The RAG service will split documents into chunks to obtain vector embeddings from a LLM. These embeddings are stored in a vector
+store for later search and retrival. The embeddings while useful for search, cannot be used to recreate the original document, thus
+do not require encryption at rest. The document chunks may contain sensitive information and are encrypted at rest, also using client
+specific encryption keys. Document chunks are not stored in the vector store.
+
+The query service will allow for the search and retrieval of documents based on the vector embeddings. The search results from
+the vector store returns the unique vector ids, which are then used to retrieve the document chunks from the encrypted document store.
+While this process is more complex, the data encryption at rest should meet the security requirements for most compliance standards (ie GDPR, HIPAA, PCI, SOC 2, etc).
 
 ## Environment Variables
 ### Security Configuration

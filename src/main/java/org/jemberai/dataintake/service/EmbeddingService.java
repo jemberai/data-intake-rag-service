@@ -18,9 +18,7 @@
 
 package org.jemberai.dataintake.service;
 
-import org.jemberai.dataintake.domain.EmbeddingModelEnum;
 import org.jemberai.dataintake.messages.EmbeddingRequestMessage;
-import org.springframework.ai.vectorstore.VectorStore;
 
 /**
  * Created by jt, Spring Framework Guru.
@@ -29,6 +27,6 @@ public interface EmbeddingService {
 
     void processOpenAPIEmbeddingRequest(EmbeddingRequestMessage message);
 
-    VectorStore getVectorStore(EmbeddingModelEnum embeddingModel, String clientId);
+   // VectorStore getVectorStore(EmbeddingModelEnum embeddingModel, String clientId);
 
 }

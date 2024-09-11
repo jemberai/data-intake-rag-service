@@ -51,7 +51,16 @@ public class EventRecordListener {
         setEncryptedFields(eventRecord);
     }
 
+    private static void setSha256(EventRecord eventRecord) {
+        if (eventRecord.getData() != null && eventRecord.getSha256() == null) {
+            String sha256hex = org.apache.commons.codec.digest.DigestUtils.sha256Hex(eventRecord.getData());
+            eventRecord.setSha256(sha256hex);
+        }
+    }
+
     private void setEncryptedFields(EventRecord eventRecord) {
+        setSha256(eventRecord);
+
         EncryptedValueDTO dto = encryptionProvider.encrypt(eventRecord.getClientId(), eventRecord.getData());
 
         eventRecord.setProvider(dto.provider());
@@ -63,7 +72,6 @@ public class EventRecordListener {
 
     @PostLoad
     public void postLoad(EventRecord eventRecord) {
-        log.debug("Decrypting AES Key");
         eventRecord.setData(encryptionProvider.decrypt(eventRecord.getClientId(),
                 new EncryptedValueDTO(eventRecord.getProvider(), eventRecord.getKeyId(), eventRecord.getHmac(),
                         eventRecord.getEncryptedValue(), eventRecord.getInitializationVector())));

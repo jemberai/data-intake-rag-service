@@ -16,17 +16,16 @@
  *
  */
 
-package org.jemberai.dataintake.controller;
+package org.jemberai.dataintake.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.jemberai.dataintake.BaseTest;
+import lombok.val;
 import org.jemberai.dataintake.domain.EmbeddingStatusEnum;
 import org.jemberai.dataintake.model.QueryRequest;
 import org.jemberai.dataintake.repositories.EventRecordRepository;
-import lombok.val;
+import org.jemberai.dataintake.service.EventRecordServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,9 +51,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DirtiesContext
 @Testcontainers
 @SpringBootTest
-class QueryControllerTest extends BaseTest {
+class QueryControllerIT extends BaseIT {
 
-    @Value("classpath:files/movies200Trimed.csv")
+    @Value("classpath:files/movies10Trimmed.csv")
     Resource csvFile;
 
     @Autowired
@@ -64,12 +63,17 @@ class QueryControllerTest extends BaseTest {
     EventRecordRepository eventRecordRepository;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp2() throws Exception {
 
         mockMvc = MockMvcBuilders
                 .webAppContextSetup(wac)
                 .apply(springSecurity())
                 .build();
+    }
+
+    //@Disabled
+    @Test
+    void getDocuments() throws Exception {
 
         //load movies csv
         String csv = csvFile.getContentAsString(StandardCharsets.UTF_8);
@@ -87,16 +91,12 @@ class QueryControllerTest extends BaseTest {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse();
 
-        val savedId = UUID.fromString(Objects.requireNonNull(response.getHeader("ce-jembereventid")));
+        val savedId = UUID.fromString(Objects.requireNonNull(response.getHeader("ce-" + EventRecordServiceImpl.JEMBERAIEVENTID)));
 
         await().atMost(300, TimeUnit.SECONDS).until(() -> eventRecordRepository.findById(savedId).get().getEmbeddingStatus().equals(EmbeddingStatusEnum.COMPLETED));
 
         log.debug("Event saved and embedded with id: " + savedId);
-    }
 
-    @Disabled
-    @Test
-    void getDocuments() throws Exception {
 
         val queryRequest = QueryRequest.builder()
                 .query("Spiderman")
@@ -106,7 +106,11 @@ class QueryControllerTest extends BaseTest {
                 .with(jwtRequestPostProcessor)
                 .contentType("application/json").content(objectMapper.writeValueAsString(queryRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(4)))
+                .andExpect(jsonPath("$", hasSize(3)))
                 .andReturn();
+
+        val content = mvcResponse.getResponse().getContentAsString();
+
+        log.info("Response: " + content);
     }
 }
