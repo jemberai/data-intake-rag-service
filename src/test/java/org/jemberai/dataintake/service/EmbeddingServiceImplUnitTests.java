@@ -147,11 +147,16 @@ class EmbeddingServiceImplUnitTests {
     @ValueSource(strings = { "files/file-sample_100kb.docx",
             "files/file_example_XLS_10.xls",
             "files/file_example_XLSX_10.xlsx", "files/file_example_XML_24kb.xml",
-            "files/index2.html", "files/htmlfile.html"})
-    void testVariousDocFormats(String fileName) throws IOException {
+            "files/index2.html", "files/htmlfile.html", "stop"})
+    void testVariousDocFormats(String fileName) throws IOException, ClassNotFoundException {
 
         log.info("Processing file: " + fileName);
         log.info("Processing file: **" + fileName + "**");
+
+        if (fileName.equals("stop")) {
+            return;
+        }
+
         File file = new File(getClass().getClassLoader().getResource("files").getFile());
         //System.out.println(file.listFiles());
         Arrays.stream(file.listFiles()).forEach(f -> {
@@ -161,6 +166,7 @@ class EmbeddingServiceImplUnitTests {
             System.out.println(f.exists());
             System.out.println(f.getName().equals("index2.html"));
         }) ;
+
 
 
         InputStream inputStream = getClass().getClassLoader().getResourceAsStream(fileName);
