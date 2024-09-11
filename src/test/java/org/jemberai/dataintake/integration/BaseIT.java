@@ -18,25 +18,42 @@
 
 package org.jemberai.dataintake.integration;
 
+import lombok.extern.slf4j.Slf4j;
+import org.jemberai.cryptography.keymanagement.AesKeyDTO;
 import org.jemberai.cryptography.keymanagement.JpaKeyService;
+import org.jemberai.cryptography.keymanagement.KeyUtils;
 import org.jemberai.cryptography.repositories.DefaultEncryptionKeyRepository;
 import org.jemberai.dataintake.repositories.EventRecordRepository;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.milvus.MilvusContainer;
 
 import javax.sql.DataSource;
+import java.time.Instant;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 
 /**
  * Created by jt, Spring Framework Guru.
  */
+@Slf4j
+@SpringBootTest
 public class BaseIT {
     @Container
     @ServiceConnection
@@ -60,6 +77,9 @@ public class BaseIT {
     @Autowired
     @Qualifier("dataSourcePrimary")
     DataSource dataSourcePrimary;
+
+    @Autowired
+    public WebApplicationContext wac;
 
     public static final String TEST_CLIENT_ID = "test";
 
@@ -120,5 +140,39 @@ public class BaseIT {
         registry.add("org.jemberai.vectorstore.milvus.port", () ->  milvusContainer.getMappedPort(19530));
         registry.add("org.jemberai.vectorstore.milvus.username", () -> "minioadmin");
         registry.add("org.jemberai.vectorstore.milvus.password", () -> "minioadmin");
+    }
+
+    public MockMvc mockMvc;
+
+    public static final String JEMBER_CLIENT = "jember-client";
+
+    public static final SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtRequestPostProcessor =
+            jwt().jwt(jwt -> {
+                jwt.claims(claims -> {
+                            claims.put("scope", "read");
+                            claims.put("scope", "write");
+                        })
+                        .subject(JEMBER_CLIENT)
+                        .audience(List.of(JEMBER_CLIENT))
+                        .notBefore(Instant.now().minusSeconds(5l));
+            });
+
+    @BeforeEach
+    void setUp() {
+
+        if (jpaKeyService.getDefaultKey(JEMBER_CLIENT) == null) {
+            log.info("Generating AES Key");
+            AesKeyDTO aesKeyDTO = KeyUtils.generateAesKeyDTO();
+            aesKeyDTO.setClientId(JEMBER_CLIENT);
+            jpaKeyService.setDefaultKey(JEMBER_CLIENT, aesKeyDTO);
+
+            log.info("Default Key Set");
+
+            assertThat(jpaKeyService.getDefaultKey(JEMBER_CLIENT)).isNotNull();
+        }
+        mockMvc = MockMvcBuilders
+                .webAppContextSetup(wac)
+                .apply(springSecurity())
+                .build();
     }
 }

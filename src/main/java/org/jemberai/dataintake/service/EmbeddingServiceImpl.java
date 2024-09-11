@@ -73,7 +73,7 @@ public class EmbeddingServiceImpl implements EmbeddingService {
                     .build());
         } catch (Exception e) {
             //todo handle better
-            log.error("Error parsing document Event Id: {}", message.getEventRecord().getId());
+            log.error("Error parsing document Event Id: {}", message.getEventRecord().getId(), e);
 
             applicationEventPublisher.publishEvent(EmbeddingRequestCompleteMessage.builder()
                     .eventRecord(message.getEventRecord())
@@ -88,7 +88,7 @@ public class EmbeddingServiceImpl implements EmbeddingService {
         List<TextSegment> textSegments = documentSplitter.split(payloadDocument);
 
         // get the embedding for each segment
-        EmbeddingStore<TextSegment> embeddingStore = embeddingStoreFactory.createEmbeddingStore(message.getEventRecord().getClientId());
+        EmbeddingStore<TextSegment> embeddingStore = embeddingStoreFactory.createEmbeddingStore(message.getEventRecord().getClientId(), embeddingModel.dimension());
         // add the embedding to the vector store, get id
         Map<String, TextSegment> segmentMap = new HashMap<>(textSegments.size());
 

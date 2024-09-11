@@ -19,7 +19,7 @@
 package org.jemberai.dataintake.service;
 
 import org.jemberai.dataintake.model.QueryRequest;
-import org.springframework.ai.document.Document;
+import org.jemberai.dataintake.model.QueryResponseDocument;
 
 import java.util.List;
 
@@ -28,5 +28,5 @@ import java.util.List;
  */
 public interface QueryService {
 
-    List<Document> getDocuments(String clientId, QueryRequest queryRequest);
+    List<QueryResponseDocument> getDocuments(String clientId, QueryRequest queryRequest);
 }

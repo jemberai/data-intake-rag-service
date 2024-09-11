@@ -50,8 +50,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
@@ -162,7 +161,7 @@ class EmbeddingServiceImplUnitTests {
                 .embeddingStatus(EmbeddingStatusEnum.NEW)
                 .build();
 
-        when(embeddingStoreFactory.createEmbeddingStore(anyString())).thenReturn(esMock);
+        when(embeddingStoreFactory.createEmbeddingStore(anyString(), anyInt())).thenReturn(esMock);
         when(embeddingModel.embed((TextSegment) any())).thenReturn(new Response<>(new Embedding(new float[]{1.0f, 2.0f, 3.0f})));
         when(esMock.add(any())).thenReturn("123");
 
@@ -170,7 +169,7 @@ class EmbeddingServiceImplUnitTests {
                 .eventRecord(eventRecord)
                 .build());
 
-        then(embeddingStoreFactory).should().createEmbeddingStore(anyString());
+        then(embeddingStoreFactory).should().createEmbeddingStore(anyString(), anyInt());
         then(embeddingModel).should(times(6)).embed((TextSegment) any());
         then(esMock).should(times(6)).add(any());
         then(applicationEventPublisher).should().publishEvent(completeCaptor.capture());

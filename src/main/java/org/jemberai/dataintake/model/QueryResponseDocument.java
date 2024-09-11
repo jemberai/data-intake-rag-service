@@ -16,16 +16,25 @@
  *
  */
 
-package org.jemberai.dataintake.embedding;
+package org.jemberai.dataintake.model;
 
-import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.store.embedding.EmbeddingStore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+
+import java.util.Map;
 
 /**
- * Factory interface for creating EmbeddingStore instances. Implementations of this interface
- * are specific to the underlying vector store implementation.
  * Created by jt, Spring Framework Guru.
  */
-public interface EmbeddingStoreFactory {
-    EmbeddingStore<TextSegment> createEmbeddingStore(String collectionName, int dimension);
+@AllArgsConstructor
+@Builder
+@Data
+public class QueryResponseDocument {
+    String id;
+    String content;
+    @JsonProperty(index = 100)
+    private float[] embedding = new float[0];
+    private Map<String, Object> metadata;
 }
