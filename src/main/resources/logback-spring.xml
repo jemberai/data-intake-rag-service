@@ -23,7 +23,7 @@
 
     <springProperty scope="context" name="appName" source="spring.application.name"/>
 
-    <springProfile name="default">
+    <springProfile name="!json-logs,!dev">
         <include resource="org/springframework/boot/logging/logback/base.xml" />
     </springProfile>
 
