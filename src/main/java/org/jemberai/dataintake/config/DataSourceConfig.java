@@ -22,7 +22,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.boot.autoconfigure.flyway.FlywayDataSource;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateProperties;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
@@ -54,13 +53,12 @@ public class DataSourceConfig {
 
     @Primary
     @Bean
-    public HikariDataSource dataSourcePrimary(@Qualifier("dataSourcePropertiesPrimary") DataSourceProperties dataSourcePropertiesPrimary) {
+    public HikariDataSource dataSourcePrimary(@Qualifier("dataSourcePropertiesPrimary") DataSourceProperties dataSourcePropertiesPrimary, JemberProperties jemberProperties) {
         return dataSourcePropertiesPrimary.initializeDataSourceBuilder()
                 .type(HikariDataSource.class)
                 .build();
     }
 
-    @FlywayDataSource
     @Bean("dataSourcePrimaryFlyway")
     public DataSource dataSourcePrimaryFlyway(@Qualifier("dataSourcePropertiesPrimaryFlyway") DataSourceProperties dataSourcePropertiesKeyStore) {
         return dataSourcePropertiesKeyStore.initializeDataSourceBuilder()
@@ -86,7 +84,12 @@ public class DataSourceConfig {
     @Bean("entityManagerFactoryPrimary")
     public LocalContainerEntityManagerFactoryBean entityManagerFactoryPrimary(@Qualifier("hibernateBaseDataSourceConfigPrimary") HibernateBaseDataSourceConfig hibernateBaseDataSourceConfigPrimary,
                                                                               @Qualifier("jpaPropertiesPrimary") JpaProperties jpaPropertiesPrimary,
-                                                                              ConfigurableListableBeanFactory beanFactory) {
+                                                                              ConfigurableListableBeanFactory beanFactory,
+                                                                              @Qualifier("flywayMigratorPrimary") FlywayMigrator flywayMigratorPrimary) {
+
+        //perform migration before Hibernate initialization, hibernate validation will fail if the schema is not up to date
+        flywayMigratorPrimary.doMigration();
+
         EntityManagerFactoryBuilder emfBuilder = hibernateBaseDataSourceConfigPrimary.createEntityManagerFactoryBuilder(jpaPropertiesPrimary);
 
         return hibernateBaseDataSourceConfigPrimary.entityManagerFactory(emfBuilder,
