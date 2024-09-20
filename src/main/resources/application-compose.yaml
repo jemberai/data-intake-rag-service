@@ -1,0 +1,50 @@
+spring:
+  docker:
+    compose:
+      file: classpath:local-compose.yaml
+org:
+  jemberai:
+    cryptography:
+      jemberKeyId: "9a7630cd-8083-429c-82c0-a76d12d69f13"
+      jemberAesKey: "NW67Ztk36sn8gzo8atUYspcrdSuv1Tn94gZhEQbb094="
+      jemberHmacKey: "bP8hfE2sl7kJwHbi3mnmXUeLP6AGnDErQv3+mcADtU0="
+    datasource:
+      primary:
+        url: jdbc:postgresql://localhost:5433/dataintake
+        driver-class-name: org.postgresql.Driver
+        username: dataintake
+        password: dataintake
+        name: primary
+      primary-flyway:
+        url: jdbc:postgresql://localhost:5433/dataintake
+        driver-class-name: org.postgresql.Driver
+        username: dataintake
+        password: dataintake
+      keystore:
+        url: jdbc:postgresql://localhost:5433/keystore
+        driver-class-name: org.postgresql.Driver
+        username: keystore
+        password: keystore
+        name: keystore
+      keystore-flyway:
+        url: jdbc:postgresql://localhost:5433/keystore
+        driver-class-name: org.postgresql.Driver
+        username: keystore
+        password: keystore
+    jpa:
+      primary:
+        hibernate:
+          ddl-auto: validate
+      keystore:
+        hibernate:
+          ddl-auto: validate
+    llm:
+      openAi:
+        apiKey: ${OPENAI_API_KEY}
+    vectorstore:
+      milvus:
+        databaseName: "data_intake_local"
+        host: http://localhost
+        port: 19530
+        username: "minioadmin"
+        password: "minioadmin"

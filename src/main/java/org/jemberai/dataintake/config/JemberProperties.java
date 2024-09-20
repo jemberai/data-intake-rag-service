@@ -73,6 +73,7 @@ public class JemberProperties {
 
     @Configuration
     @Setter
+    @Getter
     @ConfigurationProperties(prefix = "org.jemberai.datasource")
     public static class DataSource {
         @NestedConfigurationProperty
@@ -111,6 +112,8 @@ public class JemberProperties {
 
     @Configuration
     @Setter
+    @Getter
+    @ConfigurationProperties(prefix = "org.jemberai.jpa")
     public static class Jpa {
 
         @NestedConfigurationProperty
