@@ -17,6 +17,8 @@ on:
       - '.vscode/**/*'
       - '**/.env.example'
       - '.github/ISSUE_TEMPLATE/**/*'
+      - '.github/CODEOWNERS'
+      - '.github/workflows/**/*'
 
 env:
   REGISTRY_LOGIN_SERVER: quay.io
@@ -140,7 +142,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "GitHub Action - Data Intake RAG Release: ${{ steps.bump.outputs.new_tag }}\n Job Status: ${{ job.status }}\n [Release Information](https://github.com/jemberai/data-intake-rag-service/releases/tag/${{ steps.bump.outputs.new_tag }})   \n ${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+                    "text": "GitHub Action - Data Intake RAG Release: ${{ steps.bump.outputs.new_tag }}\n Job Status: ${{ job.status }}\n <https://github.com/jemberai/data-intake-rag-service/releases/tag/${{ steps.bump.outputs.new_tag }}|Release Information>\n\n <${{ github.event.pull_request.html_url || github.event.head_commit.url }}|Commit Ref>"
                   }
                 }
               ]
