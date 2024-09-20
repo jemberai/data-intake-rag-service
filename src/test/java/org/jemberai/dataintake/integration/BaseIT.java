@@ -57,13 +57,13 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 public class BaseIT {
     @Container
     @ServiceConnection
-    static PostgreSQLContainer primaryDb = new PostgreSQLContainer("postgres:16-alpine");
+    static PostgreSQLContainer<?> primaryDb = new PostgreSQLContainer<>("postgres:16-alpine");
 
     @Container
-    static PostgreSQLContainer keyStoreDb = new PostgreSQLContainer("postgres:16-alpine");
+    static PostgreSQLContainer<?> keyStoreDb = new PostgreSQLContainer<>("postgres:16-alpine");
 
     @Container
-    public static MilvusContainer milvusContainer = new MilvusContainer("milvusdb/milvus:v2.3.9");
+    static MilvusContainer milvusContainer = new MilvusContainer("milvusdb/milvus:v2.4.11");
 
     @Autowired
     EventRecordRepository eventRecordRepository;
@@ -131,13 +131,13 @@ public class BaseIT {
 
         //milvus
         registry.add("spring.ai.vectorstore.milvus.client.host", milvusContainer::getHost);
-        registry.add("spring.ai.vectorstore.milvus.client.port", () ->  milvusContainer.getMappedPort(19530));
+        registry.add("spring.ai.vectorstore.milvus.client.port", () -> milvusContainer.getMappedPort(19530));
         registry.add("spring.ai.vectorstore.milvus.client.username", () -> "minioadmin");
         registry.add("spring.ai.vectorstore.milvus.client.password", () -> "minioadmin");
 
         //mivlus jember
         registry.add("org.jemberai.vectorstore.milvus.host", milvusContainer::getHost);
-        registry.add("org.jemberai.vectorstore.milvus.port", () ->  milvusContainer.getMappedPort(19530));
+        registry.add("org.jemberai.vectorstore.milvus.port", () -> milvusContainer.getMappedPort(19530));
         registry.add("org.jemberai.vectorstore.milvus.username", () -> "minioadmin");
         registry.add("org.jemberai.vectorstore.milvus.password", () -> "minioadmin");
     }

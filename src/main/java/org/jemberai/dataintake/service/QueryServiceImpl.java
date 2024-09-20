@@ -56,9 +56,13 @@ public class QueryServiceImpl implements QueryService {
 
         Embedding queryEmbedding = embeddingModel.embed(queryRequest.getQuery()).content();
 
-        EmbeddingSearchResult<TextSegment> result = embeddingStore.search(EmbeddingSearchRequest.builder()
-                        .queryEmbedding(queryEmbedding)
-                .build());
+        EmbeddingSearchRequest searchRequest = EmbeddingSearchRequest.builder()
+                .queryEmbedding(queryEmbedding)
+                .maxResults(queryRequest.getTopK() != null ? queryRequest.getTopK() : 10)
+                .minScore(queryRequest.getSimilarityThreshold())
+                .build();
+
+        EmbeddingSearchResult<TextSegment> result = embeddingStore.search(searchRequest);
 
         List<String> matchIds = result.matches().stream().map(EmbeddingMatch::embeddingId)
                 .toList();
@@ -66,10 +70,9 @@ public class QueryServiceImpl implements QueryService {
         List<EventRecordChunk> chunks = eventRecordChunkRepository.findAllByEventRecord_ClientIdAndEmbeddingIdIn(clientId, matchIds);
 
         return chunks.stream().map(chunk -> QueryResponseDocument.builder()
-                .id(chunk.getId().toString())
-                .id(chunk.getEmbeddingId())
-                .content(new String(chunk.getData()))
-                .build())
+                        .id(chunk.getId().toString())
+                        .content(new String(chunk.getData()))
+                        .build())
                 .toList();
     }
 }
