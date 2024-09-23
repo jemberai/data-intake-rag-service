@@ -7,7 +7,17 @@ concurrency:
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-
+    paths-ignore:
+      - '**.md'
+      - '.idea/**/*'
+      - '.mvn/**/*'
+      - 'mvnw'
+      - 'mvnw.cmd'
+      - '.vscode/**/*'
+      - '**/.env.example'
+      - '.github/ISSUE_TEMPLATE/**/*'
+      - '.github/CODEOWNERS'
+      - '.github/workflows/**/*'
 jobs:
   build_and_verify:
     name: Run Merge Checks

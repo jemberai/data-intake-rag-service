@@ -1,6 +1,12 @@
 spring:
   application:
       name: data-intake-rest-service
+  docker:
+    compose:
+      profiles:
+        active: compose
+      start:
+        log-level: info
   jpa:
    hibernate:
     ddl-auto: none
@@ -8,10 +14,7 @@ spring:
    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
    driver-class-name: org.h2.Driver
   flyway:
-   driver-class-name: org.h2.Driver
-   locations: classpath:db/migration,classpath:db/vendor/{vendor}
-#  profiles:
-#   active: json-logs
+    enabled: false
   security:
    oauth2:
      resourceserver:
