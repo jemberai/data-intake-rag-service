@@ -27,6 +27,7 @@ import dev.langchain4j.store.embedding.EmbeddingSearchResult;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jemberai.dataintake.domain.DocumentMetadataKeys;
 import org.jemberai.dataintake.domain.EventRecordChunk;
 import org.jemberai.dataintake.embedding.EmbeddingStoreFactory;
 import org.jemberai.dataintake.model.QueryRequest;
@@ -34,7 +35,9 @@ import org.jemberai.dataintake.model.QueryResponseDocument;
 import org.jemberai.dataintake.repositories.EventRecordChunkRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by jt, Spring Framework Guru.
@@ -69,10 +72,16 @@ public class QueryServiceImpl implements QueryService {
 
         List<EventRecordChunk> chunks = eventRecordChunkRepository.findAllByEventRecord_ClientIdAndEmbeddingIdIn(clientId, matchIds);
 
-        return chunks.stream().map(chunk -> QueryResponseDocument.builder()
-                        .id(chunk.getId().toString())
-                        .content(new String(chunk.getData()))
-                        .build())
-                .toList();
+        return chunks.stream().map(chunk -> {
+            Map<String, Object> metadata = new HashMap<>();
+            String parentDocumentId = chunk.getEventRecord() != null ? chunk.getEventRecord().getId().toString() : null;
+            metadata.put(DocumentMetadataKeys.PARENT_DOCUMENT_ID, parentDocumentId);
+            return QueryResponseDocument.builder()
+                    .id(chunk.getId().toString())
+                    .embeddingId(chunk.getEmbeddingId())
+                    .content(new String(chunk.getData()))
+                    .metadata(metadata)
+                    .build();
+        }).toList();
     }
 }

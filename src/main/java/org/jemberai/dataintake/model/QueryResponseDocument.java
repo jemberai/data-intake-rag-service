@@ -33,6 +33,7 @@ import java.util.Map;
 @Data
 public class QueryResponseDocument {
     String id;
+    String embeddingId;
     String content;
     @JsonProperty(index = 100)
     private float[] embedding = new float[0];

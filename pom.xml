@@ -71,18 +71,6 @@
         <jember-cryptography.version>0.7.0</jember-cryptography.version>
     </properties>
 
-    <!--    <dependencyManagement>-->
-    <!--        <dependencies>-->
-    <!--            <dependency>-->
-    <!--                <groupId>org.springframework.ai</groupId>-->
-    <!--                <artifactId>spring-ai-bom</artifactId>-->
-    <!--                <version>${spring-ai.version}</version>-->
-    <!--                <type>pom</type>-->
-    <!--                <scope>import</scope>-->
-    <!--            </dependency>-->
-    <!--        </dependencies>-->
-    <!--    </dependencyManagement>-->
-
     <dependencies>
         <dependency>
             <groupId>org.jemberai</groupId>
@@ -214,10 +202,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
