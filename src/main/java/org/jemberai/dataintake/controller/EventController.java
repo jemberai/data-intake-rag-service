@@ -20,8 +20,8 @@ package org.jemberai.dataintake.controller;
 
 import io.cloudevents.CloudEvent;
 import io.cloudevents.core.v1.CloudEventBuilder;
-import org.jemberai.dataintake.service.EventRecordService;
 import lombok.RequiredArgsConstructor;
+import org.jemberai.dataintake.service.EventRecordService;
 import org.jemberai.dataintake.service.EventRecordServiceImpl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +42,7 @@ public class EventController {
 
     private final EventRecordService eventRecordService;
 
-    @GetMapping(value ="/v1/event/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/v1/event/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CloudEvent> getEventById(@PathVariable("id") UUID id) {
         return eventRecordService.findById(id)
                 .map(event -> new CloudEventBuilder(event).build())

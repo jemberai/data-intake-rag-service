@@ -20,13 +20,12 @@ package org.jemberai.dataintake.config;
 
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
+import dev.langchain4j.model.openai.OpenAiEmbeddingModelName;
 import dev.langchain4j.store.embedding.milvus.MilvusEmbeddingStore;
 import org.jemberai.dataintake.embedding.EmbeddingStoreFactory;
 import org.jemberai.dataintake.embedding.milvus.MilvusEmbeddingStoreFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import static dev.langchain4j.model.openai.OpenAiEmbeddingModelName.TEXT_EMBEDDING_3_SMALL;
 
 /**
  * Created by jt, Spring Framework Guru.
@@ -38,7 +37,7 @@ public class LangChainConfig {
     EmbeddingModel openAiEmbeddingModelLangChain(JemberProperties jemberProperties) {
         return OpenAiEmbeddingModel.builder()
                 .apiKey(jemberProperties.getLlm().getOpenAi().getApiKey())
-                .modelName(TEXT_EMBEDDING_3_SMALL)
+                .modelName(OpenAiEmbeddingModelName.TEXT_EMBEDDING_3_SMALL)
                 .logRequests(true)
                 .logResponses(true)
                 .build();

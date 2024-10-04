@@ -16,26 +16,5 @@
  *
  */
 
-package org.jemberai.dataintake.model;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-
-import java.util.Map;
-
-/**
- * Created by jt, Spring Framework Guru.
- */
-@AllArgsConstructor
-@Builder
-@Data
-public class QueryResponseDocument {
-    String id;
-    String embeddingId;
-    String content;
-    @JsonProperty(index = 100)
-    private float[] embedding = new float[0];
-    private Map<String, Object> metadata;
-}
+alter table event_record
+    ADD COLUMN csv_header text;

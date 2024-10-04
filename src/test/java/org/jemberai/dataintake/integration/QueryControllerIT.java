@@ -106,7 +106,7 @@ class QueryControllerIT extends BaseIT {
                 .with(jwtRequestPostProcessor)
                 .contentType("application/json").content(objectMapper.writeValueAsString(queryRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(3)))
+                .andExpect(jsonPath("$", hasSize(4)))
                 .andReturn();
 
         val content = mvcResponse.getResponse().getContentAsString();
