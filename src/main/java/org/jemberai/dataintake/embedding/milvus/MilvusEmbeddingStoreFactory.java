@@ -41,12 +41,12 @@ public class MilvusEmbeddingStoreFactory implements EmbeddingStoreFactory {
             throw new IllegalArgumentException("Collection name must not be null");
         }
 
-        if (collectionName.contains("-")){
+        if (collectionName.contains("-")) {
             collectionName = collectionName.replace("-", "_");
         }
-
+        var _collectionName = collectionName + "_" + dimension;
         return builder
-                .collectionName(collectionName)
+                .collectionName(_collectionName)
                 .dimension(dimension)
                 .build();
     }
