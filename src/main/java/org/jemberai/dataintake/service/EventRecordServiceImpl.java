@@ -114,7 +114,7 @@ public class EventRecordServiceImpl implements EventRecordService {
         if (event.getSource() != null) {
             builder.source(event.getSource().toString());
 
-            if (Objects.equals(event.getDataContentType(), ContentType.APPLICATION_JSON.getValue()) && event.getData() != null) {
+            if (Objects.equals(event.getDataContentType(), ContentType.TEXT_CSV.getValue()) && event.getData() != null) {
                 builder.csvHeader(extractCSVHeader(event.getData()));
             }
         }
