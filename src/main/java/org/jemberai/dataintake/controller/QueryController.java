@@ -43,11 +43,11 @@ public class QueryController {
     public List<QueryResponseDocument> getDocuments(@RequestParam(required = false) String clientId,
                                                     @RequestBody QueryRequest queryRequest,
                                                     Authentication authentication) {
+        // TODO Handle clientId from authentication to better track client requests
+        if (clientId == null || clientId.isEmpty()) {
+            clientId = authentication.getName();
+        }
 
-        //todo add clientId to query ability
-        //get authentication user from spring security
-        String clientIdAuth = authentication.getName();
-
-        return queryService.getDocuments(clientIdAuth, queryRequest);
+        return queryService.getDocuments(clientId, queryRequest);
     }
 }
