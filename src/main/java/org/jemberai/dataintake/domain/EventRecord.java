@@ -47,7 +47,7 @@ public class EventRecord {
     public EventRecord(UUID id, Integer version, String clientId, String specVersion, String eventType, String source,
                        String subject, String eventId, OffsetDateTime time, String dataContentType,
                        byte[] data, String sha256, EmbeddingStatusEnum embeddingStatus, List<EventExtensionRecord> extensions,
-                          List<EventRecordChunk> chunks, LocalDateTime dateCreated, LocalDateTime dateUpdated) {
+                       List<EventRecordChunk> chunks, LocalDateTime dateCreated, LocalDateTime dateUpdated, String csvHeader) {
         this.id = id;
         this.version = version;
         this.clientId = clientId;
@@ -65,6 +65,7 @@ public class EventRecord {
         this.chunks = chunks;
         this.dateCreated = dateCreated;
         this.dateUpdated = dateUpdated;
+        this.csvHeader = csvHeader;
 
         //Keeps JPA happy
         if (extensions != null) {
@@ -129,6 +130,8 @@ public class EventRecord {
     private EmbeddingStatusEnum embeddingStatus = EmbeddingStatusEnum.NEW;
 
     private String tikaMetadata;
+
+    private String csvHeader; // Comma separated header attributes
 
     @OneToMany(mappedBy = "eventRecord", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<EventExtensionRecord> extensions = new ArrayList<>();

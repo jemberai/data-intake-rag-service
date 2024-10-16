@@ -19,6 +19,7 @@
 package org.jemberai.dataintake.service;
 
 import io.cloudevents.CloudEvent;
+import io.cloudevents.CloudEventData;
 import io.cloudevents.core.v1.CloudEventBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,11 +28,13 @@ import org.jemberai.dataintake.domain.EventRecord;
 import org.jemberai.dataintake.messages.NewEventMessage;
 import org.jemberai.dataintake.repositories.EventRecordRepository;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -56,8 +59,8 @@ public class EventRecordServiceImpl implements EventRecordService {
             try {
                 return Optional.of(eventRecordToCloudEvent(er));
             } catch (URISyntaxException e) {
-                e.printStackTrace();
-                throw  new IllegalStateException("Error converting EventRecord to CloudEvent");
+                log.error("Error converting EventRecord to CloudEvent", e);
+                throw new IllegalStateException("Error converting EventRecord to CloudEvent");
             }
         }
 
@@ -67,6 +70,7 @@ public class EventRecordServiceImpl implements EventRecordService {
     /**
      * Save a CloudEvent to the database. This will return a CloudEvent with the
      * jemberaiEventId extension set to the id of the saved event record.
+     *
      * @param event CloudEvent to save
      * @return updated CloudEvent
      */
@@ -84,7 +88,7 @@ public class EventRecordServiceImpl implements EventRecordService {
 
         ceBuilder.withExtension(JEMBERAIEVENTID, savedEventRecord.getId().toString());
 
-        if (savedEventRecord.getExtensions() != null ){
+        if (savedEventRecord.getExtensions() != null) {
             savedEventRecord.getExtensions().add(EventExtensionRecord.builder()
                     .fieldName(JEMBERAIEVENTID)
                     .fieldValue(savedEventRecord.getId().toString())
@@ -99,7 +103,7 @@ public class EventRecordServiceImpl implements EventRecordService {
         return ceBuilder.build();
     }
 
-    private EventRecord cloudEventToEventRecord(CloudEvent event, String clientId){
+    private EventRecord cloudEventToEventRecord(CloudEvent event, String clientId) {
         var builder = EventRecord.builder()
                 .clientId(clientId)
                 .specVersion(event.getSpecVersion().toString())
@@ -109,6 +113,10 @@ public class EventRecordServiceImpl implements EventRecordService {
 
         if (event.getSource() != null) {
             builder.source(event.getSource().toString());
+
+            if (Objects.equals(event.getDataContentType(), MediaType.APPLICATION_JSON_VALUE) && event.getData() != null) {
+                builder.csvHeader(extractCSVHeader(event.getData()));
+            }
         }
 
         if (event.getData() != null) {
@@ -121,7 +129,7 @@ public class EventRecordServiceImpl implements EventRecordService {
             builder.time(event.getTime());
         }
 
-        if (event.getExtensionNames() != null && !event.getExtensionNames().isEmpty()){
+        if (event.getExtensionNames() != null && !event.getExtensionNames().isEmpty()) {
             var extensionRecords = event.getExtensionNames().stream()
                     .map(name -> EventExtensionRecord.builder()
                             .fieldName(name)
@@ -133,6 +141,17 @@ public class EventRecordServiceImpl implements EventRecordService {
         }
 
         return builder.build();
+    }
+
+    private String extractCSVHeader(CloudEventData data) {
+        String csvData = new String(data.toBytes());
+        String[] rows = csvData.split("\n");
+        for (String row : rows) { // Skip empty rows
+            if (!row.trim().isEmpty()) {
+                return row;
+            }
+        }
+        return null;
     }
 
     private CloudEvent eventRecordToCloudEvent(EventRecord eventRecord) throws URISyntaxException {
@@ -148,7 +167,7 @@ public class EventRecordServiceImpl implements EventRecordService {
             builder.withSource(new URI(eventRecord.getSource()));
         }
 
-        if (eventRecord.getExtensions() != null && !eventRecord.getExtensions().isEmpty()){
+        if (eventRecord.getExtensions() != null && !eventRecord.getExtensions().isEmpty()) {
             eventRecord.getExtensions().forEach(er -> builder.withExtension(er.getFieldName(), er.getFieldValue()));
         }
 

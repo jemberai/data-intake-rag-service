@@ -33,6 +33,7 @@ import org.jemberai.dataintake.embedding.EmbeddingStoreFactory;
 import org.jemberai.dataintake.model.QueryRequest;
 import org.jemberai.dataintake.model.QueryResponseDocument;
 import org.jemberai.dataintake.repositories.EventRecordChunkRepository;
+import org.jemberai.dataintake.utils.StringUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -76,6 +77,11 @@ public class QueryServiceImpl implements QueryService {
             Map<String, Object> metadata = new HashMap<>();
             String parentDocumentId = chunk.getEventRecord() != null ? chunk.getEventRecord().getId().toString() : null;
             metadata.put(DocumentMetadataKeys.PARENT_DOCUMENT_ID, parentDocumentId);
+
+            if (chunk.getEventRecord() != null && StringUtil.isNotEmpty(chunk.getEventRecord().getCsvHeader())) {
+                metadata.put(DocumentMetadataKeys.CSV_HEADER, chunk.getEventRecord().getCsvHeader());
+            }
+
             return QueryResponseDocument.builder()
                     .id(chunk.getId().toString())
                     .embeddingId(chunk.getEmbeddingId())

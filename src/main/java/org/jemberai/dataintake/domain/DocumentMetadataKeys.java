@@ -7,4 +7,5 @@ package org.jemberai.dataintake.domain;
 
 public class DocumentMetadataKeys {
     public static final String PARENT_DOCUMENT_ID = "parentDocumentId";
+    public static final String CSV_HEADER = "csvHeader";
 }
