@@ -23,12 +23,12 @@ import io.cloudevents.CloudEventData;
 import io.cloudevents.core.v1.CloudEventBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jemberai.dataintake.domain.ContentType;
 import org.jemberai.dataintake.domain.EventExtensionRecord;
 import org.jemberai.dataintake.domain.EventRecord;
 import org.jemberai.dataintake.messages.NewEventMessage;
 import org.jemberai.dataintake.repositories.EventRecordRepository;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -114,7 +114,7 @@ public class EventRecordServiceImpl implements EventRecordService {
         if (event.getSource() != null) {
             builder.source(event.getSource().toString());
 
-            if (Objects.equals(event.getDataContentType(), ContentType.CSV.getValue()) && event.getData() != null) {
+            if (Objects.equals(event.getDataContentType(), MediaType.APPLICATION_JSON_VALUE) && event.getData() != null) {
                 builder.csvHeader(extractCSVHeader(event.getData()));
             }
         }
